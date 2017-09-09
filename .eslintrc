@@ -4,14 +4,10 @@
     "commonjs": true,
     "es6": true,
     "node": true,
-    "jasmine": true
+    "mocha": true
   },
   "extends": [
-    "eslint:recommended",
-    "plugin:jasmine/recommended"
-  ],
-  "plugins": [
-    "jasmine"
+    "eslint:recommended"
   ],
   "parserOptions": {
     "ecmaVersion": 8,

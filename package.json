@@ -1,18 +1,30 @@
 {
   "name": "json-ml-tools",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "A set of tools to simplify usage of JSON-ML in JavaScript programs.",
-  "main": "index.js",
-  "repository": "https://yngwi@bitbucket.org/nettek/json-ml-tools.git",
+  "main": "dist-modules/",
+  "module": "dist/",
+  "files": [
+    "dist/"
+  ],
+  "repository": "https://bitbucket.org/nettek/json-ml-tools.git",
   "author": "Daniel Jeller <djeller@nettek.at>",
   "license": "MIT",
   "scripts": {
-    "build": "cross-env NODE_ENV=prod webpack",
-    "dev": "cross-env NODE_ENV=dev webpack",
-    "test": "cross-env NODE_ENV=test mocha --require babel-core/register ./test/**/*.test.js"
+    "dist:all": "npm run dist && npm run dist:min",
+    "dist": "cross-env NODE_ENV=dist webpack",
+    "dist:min": "cross-env NODE_ENV=dist:min webpack",
+    "dist:modules": "rimraf ./dist-modules && babel ./src --out-dir ./dist-modules",
+    "lint:js": "eslint . --ext .js --cache",
+    "test": "mocha --require babel-core/register ./test/**/*.test.js",
+    "pretest": "npm run lint:js",
+    "preversion": "npm run test && npm run dist:all && git commit -- allow-empty -am \"Update dist\"",
+    "prepare": "npm run dist:modules",
+    "postinstall": "node postinstall.js"
   },
   "devDependencies": {
     "babel": "^6.23.0",
+    "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-eslint": "^7.2.3",
     "babel-loader": "^7.1.2",
@@ -22,7 +34,6 @@
     "cross-env": "^5.0.5",
     "eslint": "^4.6.1",
     "eslint-loader": "^1.9.0",
-    "eslint-plugin-jasmine": "^2.8.4",
     "mocha": "^3.5.0",
     "webpack": "^3.5.6"
   }

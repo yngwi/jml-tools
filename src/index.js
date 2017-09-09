@@ -1,3 +1,5 @@
-import createElementModule from './modules/createElement';
+import createElement from './modules/createElement';
 
-export const createElement = createElementModule;
+module.exports = {
+    createElement: createElement,
+};

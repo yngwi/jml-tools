@@ -110,5 +110,6 @@ typings/
 .env
 
 dist/
+dist-modules/
 
 .idea/*

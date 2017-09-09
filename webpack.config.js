@@ -3,7 +3,7 @@ const path = require('path');
 const UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
 const PACKAGE = require('./package.json');
 
-const isProduction = process.env.NODE_ENV === 'prod';
+const shouldMinify = process.env.NODE_ENV === 'dist:min';
 
 const PATHS = {
     src: path.join(__dirname, 'src'),
@@ -15,7 +15,7 @@ const config = {
     devtool: 'source-map',
     output: {
         path: PATHS.dist,
-        filename: `${PACKAGE.name}${isProduction ? '.min' : ''}.js`,
+        filename: `${PACKAGE.name}${shouldMinify ? '.min' : ''}.js`,
         library: PACKAGE.name,
         libraryTarget: 'umd',
         umdNamedDefine: true,
@@ -27,9 +27,6 @@ const config = {
                 use: [
                     {
                         loader: 'babel-loader',
-                    },
-                    {
-                        loader: 'eslint-loader',
                     },
                 ],
                 exclude: /node_modules/,
@@ -43,7 +40,7 @@ const config = {
         ],
         extensions: ['.js'],
     },
-    plugins: isProduction
+    plugins: shouldMinify
         ? [new UglifyJsPlugin({minimize: true})]
         : [],
 };
