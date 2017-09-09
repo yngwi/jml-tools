@@ -1,0 +1,1 @@
+export default object => typeof object === 'undefined' || object === null;
