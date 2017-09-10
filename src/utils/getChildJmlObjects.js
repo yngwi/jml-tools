@@ -9,10 +9,10 @@ import wrapJmlFragments from './wrapJmlFragments';
  * @return {Object[]|null} The child element array or null if the element is not a valid JSON-ML object.
  */
 export default jmlObject => {
-    const innerElement = unwrapJmlFragment(jmlObject);
-    if (isNil(innerElement)) {
+    const innerContent = unwrapJmlFragment(jmlObject);
+    if (isNil(innerContent)) {
         return null;
     }
-    const childElements = propOr(undefined, 'elements', innerElement);
+    const childElements = propOr(undefined, 'elements', innerContent);
     return isNil(childElements) ? [] : wrapJmlFragments(childElements);
 };
