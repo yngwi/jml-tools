@@ -148,11 +148,13 @@ describe('createElement', function () {
     });
 
     it('should create an JML object without attributes for invalid attributes', function () {
-        expect(createElement('empty', {attributes: {valid: 'value', invalid: {}}})).to.deep.equal({
+        expect(createElement('empty', {attributes: {valid: 'value', invalid: {object: true}}})).to.deep.equal({
             'elements': [
                 {
                     'attributes': {
                         'valid': 'value',
+                        // eslint-disable-next-line no-useless-escape
+                        'invalid': '{\"object\":true}',
                     },
                     'name': 'empty',
                     'type': 'element',
@@ -213,7 +215,7 @@ describe('createElement', function () {
             namespace: {prefix: 'ex', uri: 'http://example.com/ns'},
             attributes: {birth: '1946-09-05'},
         });
-        expect(js2xml(jmlObject, {compact: false})).to.equal('<ex:person birth="1946-09-05" xmlns:ex="http://example.com/ns">Freddie Mercury</ex:person>');
+        expect(js2xml(jmlObject, {compact: false})).to.equal('<ex:person xmlns:ex="http://example.com/ns" birth="1946-09-05">Freddie Mercury</ex:person>');
     });
 
 });

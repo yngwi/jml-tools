@@ -38,7 +38,6 @@ console.log(jmlElement);
 // }
 ```
 
-
 ### Running tests
 
 `npm test`
@@ -67,7 +66,7 @@ The data object can have any or all of the following properties:
 |----------|------------|----------------------|
 | namespace | An object describing the elements' namespace with an optional prefix and an URI    | `{prefix: 'ex', uri: 'http://example.com/ns'}` |
 | content | The content (if any). Can be a string for pure text content, a single JML object or an array of JML objects. | `'Freddie Mercury'` |
-| attributes | All attributes as an object of key-value pairs. The values will be converted to strings. | `{date: '2017-12-31', time: '23:12'}` |
+| attributes | All attributes as an object of key-value pairs. The values will be converted to strings if necessary. | `{date: '2017-12-31', time: '23:12'}` |
 
 ## Authors
 
@@ -75,8 +74,8 @@ The data object can have any or all of the following properties:
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## Acknowledgments
 
-Thanks to @nashwaan for his excellent xml-js library and the 
+Thanks to [@nashwaan](https://github.com/nashwaan) for his excellent xml-js library.

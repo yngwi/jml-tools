@@ -7,8 +7,8 @@ import types from '../constants/types';
 const createAttributesObject = (attributes, namespace = {}) => {
     if (hasContent(attributes) || hasContent(namespace)) {
         return {
-            ...getValidAttributes(attributes),
             ...createNamespaceAttribute(namespace),
+            ...stringifyAttributes(attributes),
         };
     }
 };
@@ -52,15 +52,13 @@ const createNamespaceAttribute = namespace => {
     return namespaceAttribute;
 };
 
-const getValidAttributes = (attributes = []) => {
+const stringifyAttributes = (attributes = []) => {
     const keys = Object.keys(attributes);
     const valid = {};
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
         const value = attributes[key];
-        if (isString(value)) {
-            valid[key] = value;
-        }
+        valid[key] = isString(value) ? value : JSON.stringify(value);
     }
     return valid;
 };
