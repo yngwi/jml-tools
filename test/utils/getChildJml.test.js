@@ -1,19 +1,19 @@
 import {expect} from 'chai';
 
-import getChildJmlObjects from '../../src/utils/getChildJmlObjects';
+import getChildJml from '../../src/utils/getChildJml';
 
-describe('getChildJmlObjects', function () {
+describe('getChildJml', function () {
 
     it('should return null when called without arguments', () => {
-        expect(getChildJmlObjects()).to.be.null;
+        expect(getChildJml()).to.be.null;
     });
 
     it('should return null when called with an invalid argument', () => {
-        expect(getChildJmlObjects({something: 'something'})).to.be.null;
+        expect(getChildJml({something: 'something'})).to.be.null;
     });
 
     it('should return a single object when called with an object that contains one child object', () => {
-        expect(getChildJmlObjects({
+        expect(getChildJml({
             elements: [{
                 'type': 'element',
                 'name': 'element',
@@ -27,7 +27,7 @@ describe('getChildJmlObjects', function () {
     });
 
     it('should return two objects when called with an object that contains two child objects', () => {
-        expect(getChildJmlObjects({
+        expect(getChildJml({
             elements: [{
                 'type': 'element',
                 'name': 'element',
@@ -43,7 +43,7 @@ describe('getChildJmlObjects', function () {
     });
 
     it('should return an empty array when called with an object with an empty child content array', () => {
-        expect(getChildJmlObjects({
+        expect(getChildJml({
             elements: [{
                 'type': 'element',
                 'name': 'element',
@@ -53,7 +53,7 @@ describe('getChildJmlObjects', function () {
     });
 
     it('should return an empty array when called with an object without child content', () => {
-        expect(getChildJmlObjects({
+        expect(getChildJml({
             elements: [{
                 'type': 'element',
                 'name': 'element',

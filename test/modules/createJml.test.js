@@ -1,16 +1,16 @@
 import {expect} from 'chai';
 import {js2xml} from 'xml-js';
 
-import createJmlObject from '../../src/modules/createJmlObject';
+import createJml from '../../src/modules/createJml';
 
-describe('createJmlObject', function () {
+describe('createJml', function () {
 
     it('should throw an error when called without arguments', function () {
-        expect(() => createJmlObject()).to.throw();
+        expect(() => createJml()).to.throw();
     });
 
     it('should create a JML object without child content when called with only a name', function () {
-        expect(createJmlObject('empty')).to.deep.equal({
+        expect(createJml('empty')).to.deep.equal({
             'elements': [
                 {
                     'name': 'empty',
@@ -21,7 +21,7 @@ describe('createJmlObject', function () {
     });
 
     it('should create a JML object without child content when called with an empty object as content', function () {
-        expect(createJmlObject('empty', {content: {}})).to.deep.equal({
+        expect(createJml('empty', {content: {}})).to.deep.equal({
             'elements': [
                 {
                     'name': 'empty',
@@ -32,7 +32,7 @@ describe('createJmlObject', function () {
     });
 
     it('should create a JML object without child content when called with an empty array as content', function () {
-        expect(createJmlObject('empty', {content: []})).to.deep.equal({
+        expect(createJml('empty', {content: []})).to.deep.equal({
             'elements': [
                 {
                     'name': 'empty',
@@ -43,7 +43,7 @@ describe('createJmlObject', function () {
     });
 
     it('should create a JML object without child content when called with an empty string as content', function () {
-        expect(createJmlObject('empty', {content: ''})).to.deep.equal({
+        expect(createJml('empty', {content: ''})).to.deep.equal({
             'elements': [
                 {
                     'name': 'empty',
@@ -54,7 +54,7 @@ describe('createJmlObject', function () {
     });
 
     it('should create a JML object with a child text object when called with text content', function () {
-        expect(createJmlObject('person', {content: 'Freddie Mercury'})).to.deep.equal({
+        expect(createJml('person', {content: 'Freddie Mercury'})).to.deep.equal({
             'elements': [
                 {
                     'elements': [
@@ -71,7 +71,7 @@ describe('createJmlObject', function () {
     });
 
     it('should create a JML object with a child element object when called with a child element', function () {
-        expect(createJmlObject('person', {
+        expect(createJml('person', {
             content: {
                 'elements': [
                     {
@@ -97,7 +97,7 @@ describe('createJmlObject', function () {
     });
 
     it('should create a JML object with two child element objects when called with two child elements', function () {
-        expect(createJmlObject('person', {
+        expect(createJml('person', {
             content: [{
                 'elements': [
                     {
@@ -134,7 +134,7 @@ describe('createJmlObject', function () {
     });
 
     it('should create a JML object with attribute when called with an attribute object', function () {
-        expect(createJmlObject('empty', {attributes: {myAttribute: 'value'}})).to.deep.equal({
+        expect(createJml('empty', {attributes: {myAttribute: 'value'}})).to.deep.equal({
             'elements': [
                 {
                     'attributes': {
@@ -148,7 +148,7 @@ describe('createJmlObject', function () {
     });
 
     it('should create a JML object without attributes for invalid attributes', function () {
-        expect(createJmlObject('empty', {attributes: {valid: 'value', invalid: {object: true}}})).to.deep.equal({
+        expect(createJml('empty', {attributes: {valid: 'value', invalid: {object: true}}})).to.deep.equal({
             'elements': [
                 {
                     'attributes': {
@@ -164,7 +164,7 @@ describe('createJmlObject', function () {
     });
 
     it('should create a JML object with an prefix-less namespace attribute when called with a namespace uri', function () {
-        expect(createJmlObject('empty', {namespace: {uri: 'http://example.com/ns'}})).to.deep.equal({
+        expect(createJml('empty', {namespace: {uri: 'http://example.com/ns'}})).to.deep.equal({
             'elements': [
                 {
                     'attributes': {
@@ -178,7 +178,7 @@ describe('createJmlObject', function () {
     });
 
     it('should create a JML object with an a prefixed name and namespace attribute when called with namespace prefix and uri', function () {
-        expect(createJmlObject('empty', {namespace: {prefix: 'ex', uri: 'http://example.com/ns'}})).to.deep.equal({
+        expect(createJml('empty', {namespace: {prefix: 'ex', uri: 'http://example.com/ns'}})).to.deep.equal({
             'elements': [
                 {
                     'attributes': {
@@ -192,7 +192,7 @@ describe('createJmlObject', function () {
     });
 
     it('should create a JML object with a merged attributes object when called with a namespace and attributes', function () {
-        expect(createJmlObject('empty', {
+        expect(createJml('empty', {
             namespace: {prefix: 'ex', uri: 'http://example.com/ns'},
             attributes: {myAttribute: 'value'},
         })).to.deep.equal({
@@ -210,7 +210,7 @@ describe('createJmlObject', function () {
     });
 
     it('should be return the correct xml string when converted with xml-js', function () {
-        const jmlObject = createJmlObject('person', {
+        const jmlObject = createJml('person', {
             content: 'Freddie Mercury',
             namespace: {prefix: 'ex', uri: 'http://example.com/ns'},
             attributes: {birth: '1946-09-05'},
