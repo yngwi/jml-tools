@@ -1,13 +1,13 @@
 {
   "name": "json-ml-tools",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A set of tools to simplify usage of JSON-ML in JavaScript programs.",
   "main": "dist-modules/",
   "module": "dist/",
   "files": [
     "dist/"
   ],
-  "repository": "https://bitbucket.org/nettek/json-ml-tools.git",
+  "repository": "https://github.com/yngwi/json-ml-tools.git",
   "author": "Daniel Jeller <djeller@nettek.at>",
   "license": "MIT",
   "scripts": {
