@@ -4,10 +4,10 @@ import isString from '../utils/isString';
 import propOr from '../utils/propOr';
 import types from '../constants/types';
 
-const createAttributesObject = (attributes, namespace = {}) => {
-    if (hasContent(attributes) || hasContent(namespace)) {
+const createAttributesObject = (attributes, namespaces = []) => {
+    if (hasContent(attributes) || hasContent(namespaces)) {
         return {
-            ...createNamespaceAttribute(namespace),
+            ...createNamespaceAttributes(namespaces),
             ...stringifyAttributes(attributes),
         };
     }
@@ -34,22 +34,17 @@ const createContentObjectsArray = content => {
     }
 };
 
-const createName = (name, namespace = {}) => {
-    const {prefix} = namespace;
-    return isString(prefix)
-        ? `${prefix}:${name}`
-        : name;
-};
-
-const createNamespaceAttribute = namespace => {
-    const {prefix, uri} = namespace;
-    const namespaceAttribute = {};
-    if (isString(prefix) && isString(uri)) {
-        namespaceAttribute[`xmlns:${prefix}`] = uri;
-    } else if (isString(uri)) {
-        namespaceAttribute['xmlns'] = uri;
+const createNamespaceAttributes = namespaces => {
+    const namespaceAttributes = {};
+    for (let i = 0; i < namespaces.length; i++) {
+        const {prefix, uri} = namespaces[i];
+        if (isString(prefix) && isString(uri)) {
+            namespaceAttributes[`xmlns:${prefix}`] = uri;
+        } else if (isString(uri)) {
+            namespaceAttributes['xmlns'] = uri;
+        }
     }
-    return namespaceAttribute;
+    return namespaceAttributes;
 };
 
 const stringifyAttributes = (attributes = []) => {
@@ -65,23 +60,23 @@ const stringifyAttributes = (attributes = []) => {
 
 /**
  * Creates a JML object.
- * @param {string} name The name
+ * @param {string} name The name. It must include the prefix, if any
  * @param {Object} [data={}] The object data
- * @param {Object} [data.namespace] The namespace object
- * @param {string} [data.namespace.prefix] The namespace prefix for the element
- * @param {string} data.namespace.uri The namespace URI for the element
- * @param {Object|Array|string} [data.content] The child content either as a JML object, an array of JML objects or text content
- * @param {Object} [data.attributes] Any attributes as an object of key-value pairs where the value needs to be a string
- * @return {Object} Returns a JSON object that can be converted to a valid XML element.
+ * @param {Object[]} [data.namespaces] Namespace objects
+ * @param {string} [data.namespaces[].prefix] The namespace prefix
+ * @param {string} data.namespaces[].uri The namespace URI
+ * @param {Object|Array|string} [data.content] The child content, either as a JML object, an array of JML objects or text content
+ * @param {Object} [data.attributes] Any attributes as an object of key-value pairs; the value needs to be a string or it will be converted to one
+ * @return {Object} Returns the JML object.
  */
 export default (name, data = {}) => {
     if (!isString(name)) throw new Error('The \'name\' parameter needs to be a string!');
-    const {attributes, content, namespace} = data;
+    const {attributes, content, namespaces} = data;
     const contentObject = {
         type: types.ELEMENT,
-        name: createName(name, namespace),
+        name,
     };
-    const attributeObject = createAttributesObject(attributes, namespace);
+    const attributeObject = createAttributesObject(attributes, namespaces);
     if (hasContent(attributeObject)) {
         contentObject.attributes = attributeObject;
     }

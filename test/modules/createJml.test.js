@@ -164,7 +164,7 @@ describe('createJml', function () {
     });
 
     it('should create a JML object with an prefix-less namespace attribute when called with a namespace uri', function () {
-        expect(createJml('empty', {namespace: {uri: 'http://example.com/ns'}})).to.deep.equal({
+        expect(createJml('empty', {namespaces: [{uri: 'http://example.com/ns'}]})).to.deep.equal({
             'elements': [
                 {
                     'attributes': {
@@ -178,7 +178,7 @@ describe('createJml', function () {
     });
 
     it('should create a JML object with an a prefixed name and namespace attribute when called with namespace prefix and uri', function () {
-        expect(createJml('empty', {namespace: {prefix: 'ex', uri: 'http://example.com/ns'}})).to.deep.equal({
+        expect(createJml('ex:empty', {namespaces: [{prefix: 'ex', uri: 'http://example.com/ns'}]})).to.deep.equal({
             'elements': [
                 {
                     'attributes': {
@@ -192,8 +192,8 @@ describe('createJml', function () {
     });
 
     it('should create a JML object with a merged attributes object when called with a namespace and attributes', function () {
-        expect(createJml('empty', {
-            namespace: {prefix: 'ex', uri: 'http://example.com/ns'},
+        expect(createJml('ex:empty', {
+            namespaces: [{prefix: 'ex', uri: 'http://example.com/ns'}],
             attributes: {myAttribute: 'value'},
         })).to.deep.equal({
             'elements': [
@@ -209,10 +209,36 @@ describe('createJml', function () {
         });
     });
 
+    it('should create a JML object with two namespaces and nested elements in different namespaces', function () {
+        expect(createJml('root', {
+            namespaces: [{uri: 'http://example.com/default'}, {prefix: 'ex', uri: 'http://example.com/ns'}],
+            attributes: {myAttribute: 'value'},
+            content: createJml('ex:child'),
+        })).to.deep.equal({
+            'elements': [
+                {
+                    'attributes': {
+                        'myAttribute': 'value',
+                        'xmlns': 'http://example.com/default',
+                        'xmlns:ex': 'http://example.com/ns',
+                    },
+                    'elements': [
+                        {
+                            'name': 'ex:child',
+                            'type': 'element',
+                        },
+                    ],
+                    'name': 'root',
+                    'type': 'element',
+                },
+            ],
+        });
+    });
+
     it('should be return the correct xml string when converted with xml-js', function () {
-        const jmlObject = createJml('person', {
+        const jmlObject = createJml('ex:person', {
             content: 'Freddie Mercury',
-            namespace: {prefix: 'ex', uri: 'http://example.com/ns'},
+            namespaces: [{prefix: 'ex', uri: 'http://example.com/ns'}],
             attributes: {birth: '1946-09-05'},
         });
         expect(js2xml(jmlObject, {compact: false})).to.equal('<ex:person xmlns:ex="http://example.com/ns" birth="1946-09-05">Freddie Mercury</ex:person>');

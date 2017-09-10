@@ -62,9 +62,9 @@ console.log(jmlObject);
 
 The data object can have any or all of the following properties:
 
-| Property | Description    | Example           |
+| Property | Description    | Examples           |
 |----------|----------------|-------------------|
-| namespace | An object describing the elements' namespace with an optional prefix and an URI    | `{prefix: 'ex', uri: 'http://example.com/ns'}` |
+| namespaces | An object array describing the elements' namespaces with the namespace URI and an optional prefix. | `[{prefix: 'ns', uri: 'http://example.com/ns'}]`<br/>`[{uri: 'http://example.com/default'}, {prefix: 'ns', 'uri: 'http://example.org/ns'}]` |
 | content | The content (if any). Can be a string for pure text content, a single JML object or an array of JML objects. | `'Freddie Mercury'` |
 | attributes | All attributes as an object of key-value pairs. The values will be converted to strings if necessary. | `{date: '2017-12-31', time: '23:12'}` |
 
