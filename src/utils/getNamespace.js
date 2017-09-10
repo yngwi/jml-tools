@@ -13,6 +13,7 @@ const isFullObject = jml => Array.isArray(jml.elements);
 export default jml => {
     if (isNil(jml)) return {};
     const attributes = isFullObject(jml) ? getProperty('attributes', jml) : jml.attributes;
+    if (isNil(attributes)) return {};
     const names = Object.keys(attributes);
     const namespaceData = {};
     for (let i = 0; i < names.length; i++) {

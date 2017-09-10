@@ -8,6 +8,17 @@ describe('getNamespace', function () {
         expect(getNamespace()).to.deep.equal({});
     });
 
+    it('should return an empty object if called with an object that has no attributes', function () {
+        expect(getNamespace({
+            'elements': [
+                {
+                    'name': 'empty',
+                    'type': 'element',
+                },
+            ],
+        })).to.deep.equal({});
+    });
+
     it('should return an empty object if called with an object that has no namespace data', function () {
         expect(getNamespace({
             'elements': [
