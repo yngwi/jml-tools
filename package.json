@@ -1,40 +1,31 @@
 {
   "name": "json-ml-tools",
-  "version": "0.0.2",
-  "description": "A set of tools to simplify usage of JSON-ML in JavaScript programs.",
+  "version": "0.0.3-beta.1",
+  "description": "A set of tools to simplify usage of JSON-ML in JavaScript",
   "main": "dist-modules/",
-  "module": "dist/",
   "files": [
-    "dist/"
+    "dist-modules/"
   ],
   "repository": "https://github.com/yngwi/json-ml-tools.git",
   "author": "Daniel Jeller <djeller@nettek.at>",
   "license": "MIT",
   "scripts": {
-    "dist:all": "npm run dist && npm run dist:min",
-    "dist": "cross-env NODE_ENV=dist webpack",
-    "dist:min": "cross-env NODE_ENV=dist:min webpack",
-    "dist:modules": "rimraf ./dist-modules && babel ./src --out-dir ./dist-modules",
+    "dist": "rimraf ./dist-modules && babel ./src --out-dir ./dist-modules",
     "lint:js": "eslint . --ext .js --cache",
     "test": "mocha --require babel-core/register ./test/**/*.test.js",
     "pretest": "npm run lint:js",
-    "preversion": "npm run test && npm run dist:all && git commit -- allow-empty -am \"Update dist\"",
-    "prepare": "npm run dist:modules"
+    "prepare": "npm run test && npm run dist"
   },
   "devDependencies": {
     "babel": "^6.23.0",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-eslint": "^7.2.3",
-    "babel-loader": "^7.1.2",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.6.0",
     "chai": "^4.1.2",
-    "cross-env": "^5.0.5",
     "eslint": "^4.6.1",
-    "eslint-loader": "^1.9.0",
-    "mocha": "^3.5.0",
-    "webpack": "^3.5.6"
+    "mocha": "^3.5.0"
   },
   "dependencies": {
     "xml-js": "^1.4.1"
