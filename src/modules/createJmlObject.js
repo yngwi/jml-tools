@@ -70,7 +70,7 @@ const stringifyAttributes = (attributes = []) => {
  * @param {Object} [data.namespace] The namespace object
  * @param {string} [data.namespace.prefix] The namespace prefix for the element
  * @param {string} data.namespace.uri The namespace URI for the element
- * @param {Object|Array|string} [data.content] The child content either as an JML object, an array of JML objects or text content
+ * @param {Object|Array|string} [data.content] The child content either as a JML object, an array of JML objects or text content
  * @param {Object} [data.attributes] Any attributes as an object of key-value pairs where the value needs to be a string
  * @return {Object} Returns a JSON object that can be converted to a valid XML element.
  */
