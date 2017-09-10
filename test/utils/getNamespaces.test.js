@@ -1,6 +1,6 @@
 import {expect} from 'chai';
-import getNamespaces from '../../src/utils/getNamespaces';
 
+import getNamespaces from '../../src/utils/getNamespaces';
 
 describe('getNamespaces', function () {
 
