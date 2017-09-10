@@ -5,11 +5,11 @@ import unwrapJmlFragment from '../../src/utils/unwrapJmlFragment';
 describe('unwrapJmlFragments', function () {
 
     it('should return null if called without arguments', function () {
-        expect(unwrapJmlFragment()).to.deep.equal(null);
+        expect(unwrapJmlFragment()).to.be.null;
     });
 
     it('should return null if called with an invalid element', function () {
-        expect(unwrapJmlFragment({some: 'element'})).to.deep.equal(null);
+        expect(unwrapJmlFragment({some: 'element'})).to.be.null;
     });
 
     it('should return a valid fragment if called with a valid element', function () {
