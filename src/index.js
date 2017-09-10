@@ -1,5 +1,5 @@
-import createElement from './modules/createElement';
+import createJmlObject from './modules/createJmlObject';
 
 module.exports = {
-    createElement: createElement,
+    createJmlObject: createJmlObject,
 };

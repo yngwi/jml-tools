@@ -20,7 +20,7 @@ const createChildObjectArray = childContent => isString(childContent)
     }]
     : propOr(undefined, 'elements', childContent);
 
-const createContentElementsArray = content => {
+const createContentObjectsArray = content => {
     if (hasContent(content)) {
         const elements = [];
         const contentArray = Array.isArray(content) ? content : [content];
@@ -85,7 +85,7 @@ export default (name, data = {}) => {
     if (hasContent(attributeObject)) {
         contentObject.attributes = attributeObject;
     }
-    const childElements = createContentElementsArray(content);
+    const childElements = createContentObjectsArray(content);
     if (hasContent(childElements)) {
         contentObject.elements = childElements;
     }

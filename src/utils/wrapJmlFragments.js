@@ -12,7 +12,7 @@ const isJmlFragment = fragment => {
 };
 
 /**
- * Wraps an JML fragment (for instance from the child content) so it is a valid JML object. A fragment is an object directly containing 'type' and 'name' properties as well as an optional 'attributes' object property and an optional 'elements' array property containing the child elements as fragments.
+ * Wraps JML fragments (for instance from the child content) so they are valid JML objects. A fragment is an object directly containing 'type' and 'name' properties as well as an optional 'attributes' object property and an optional 'elements' array property containing the child elements as fragments.
  * @example
  * {'name': 'person','type': 'element'} => {'elements': [{'name': 'person','type': 'element'}]}
  * @param {Object|Object[]} jmlFragments Either a single JML fragment or an array of fragments; each fragment will be wrapped individually.

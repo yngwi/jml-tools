@@ -15,11 +15,11 @@ or
 ### Quick start
 
 ```js
-import {createElement} from 'json-ml-tools';
+import {createJmlObject} from 'json-ml-tools';
 const name = 'person';
 const data = {content: 'Freddie Mercury'};
-const jmlElement = createElement(name, data);
-console.log(jmlElement);
+const jmlObject = createJmlObject(name, data);
+console.log(jmlObject);
 
 // Output:
 // {
@@ -46,24 +46,24 @@ console.log(jmlElement);
 
 This library provides the following functionallities:
 
-### createElement
+### createJmlObject
 
 Manually creates a JML element that is fully compatible with [xml-js](https://github.com/nashwaan/xml-js).
 
 ```js
-import {createElement} from 'json-ml-tools';
+import {createJmlObject} from 'json-ml-tools';
 const name = 'person';
 const data = {content: 'Freddie Mercury'};
-const jmlElement = createElement(name, data);
-console.log(jmlElement);
+const jmlObject = createJmlObject(name, data);
+console.log(jmlObject);
 ```
 
-#### Possible element data
+#### Possible object data
 
 The data object can have any or all of the following properties:
 
 | Property | Description    | Example           |
-|----------|------------|----------------------|
+|----------|----------------|-------------------|
 | namespace | An object describing the elements' namespace with an optional prefix and an URI    | `{prefix: 'ex', uri: 'http://example.com/ns'}` |
 | content | The content (if any). Can be a string for pure text content, a single JML object or an array of JML objects. | `'Freddie Mercury'` |
 | attributes | All attributes as an object of key-value pairs. The values will be converted to strings if necessary. | `{date: '2017-12-31', time: '23:12'}` |
