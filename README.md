@@ -6,11 +6,11 @@ This library is aimed at providing a set of tools to work with marked up data si
 
 ### Installation
 
-`npm install json-ml-tools --save dev`
+`npm install json-ml-tools --save`
 
 or
 
-`yarn add json-ml-tools --dev`
+`yarn add json-ml-tools`
 
 ### Quick start
 
