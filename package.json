@@ -1,6 +1,6 @@
 {
   "name": "json-ml-tools",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A set of tools to simplify usage of JSON-ML in JavaScript programs.",
   "main": "dist-modules/",
   "module": "dist/",
@@ -19,8 +19,7 @@
     "test": "mocha --require babel-core/register ./test/**/*.test.js",
     "pretest": "npm run lint:js",
     "preversion": "npm run test && npm run dist:all && git commit -- allow-empty -am \"Update dist\"",
-    "prepare": "npm run dist:modules",
-    "postinstall": "node postinstall.js"
+    "prepare": "npm run dist:modules"
   },
   "devDependencies": {
     "babel": "^6.23.0",
