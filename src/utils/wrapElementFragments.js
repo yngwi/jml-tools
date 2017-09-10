@@ -14,13 +14,13 @@ const isJmlFragment = fragment => {
 /**
  * Wraps an JML fragment (for instance from the child content) so it is a valid JML object.
  * @description A fragment is an object directly containing 'type' and 'name' properties as well as an optional 'attributes' object property and an optional 'elements' array property containing the child elements as fragments.
- * @param {Object|Object[]} elementFragments Either a single JML fragment or an array of fragments; each fragment will be wrapped individually.
+ * @param {Object|Object[]} jmlFragments Either a single JML fragment or an array of fragments; each fragment will be wrapped individually.
  * @return {Object[]} An array of JML objects.
- * @throws Throws an error if elementFragments includes objects that are not valid JML fragments.
+ * @throws Throws an error if jmlFragments includes objects that are not valid JML fragments.
  */
-export default elementFragments => {
-    if (isNil(elementFragments)) return [];
-    const fragmentArray = Array.isArray(elementFragments) ? elementFragments : [elementFragments];
+export default jmlFragments => {
+    if (isNil(jmlFragments)) return [];
+    const fragmentArray = Array.isArray(jmlFragments) ? jmlFragments : [jmlFragments];
     const wrapped = [];
     for (let i = 0; i < fragmentArray.length; i++) {
         const currentFragment = fragmentArray[i];
