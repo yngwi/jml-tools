@@ -17,7 +17,6 @@ const isJmlFragment = fragment => {
  * {'name': 'person','type': 'element'} => {'elements': [{'name': 'person','type': 'element'}]}
  * @param {Object|Object[]} jmlFragments Either a single JML fragment or an array of fragments; each fragment will be wrapped individually.
  * @return {Object[]} An array of JML objects.
- * @throws Throws an error if jmlFragments includes objects that are not valid JML fragments.
  */
 export default jmlFragments => {
     if (isNil(jmlFragments)) return [];
