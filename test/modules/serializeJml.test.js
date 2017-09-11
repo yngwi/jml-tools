@@ -41,19 +41,25 @@ describe('serializeJml', function () {
         ).to.throw();
     });
 
-    it('should return the output string for both objects irregardles of their namespace prefix; link needs to be missing due to the missing prefix', () => {
+    it('should return the output string for both objects irregardless of their namespace prefix; link needs to be missing due to the missing prefix', () => {
         expect(serializeJml(paragraphsWithNamespaces, {
             'ns:paragraph': 'p',
-            'ns:emph': 'i',
-            'an:bold': 'strong',
-            'ns:inline': 'span',
-            'link': 'a',
+            'bold': 'b',
+            'ns:emph': 'e',
+            'ns:underline': 'u',
+            'an:strike': 's',
+            'an:link': 'l',
+            '*': 'w',
         }, {
             namespaces: [
                 {prefix: 'ns', uri: 'http://example.com/ns'},
                 {prefix: 'an', uri: 'http://example.com/another'},
             ],
-        })).to.equal('<p>This <i>should be <strong>a</strong> <span>correct and</span> complete</i> sentence.<span> Thanks!</span></p>');
+        })).to.equal('<p>This <b>should</b> be <e>a <u>complete</u> and nice <s>sentence</s></e>, with <w>many</w> a <l>different</l> part.</p>');
+    });
+
+    it('should return the only the text content', () => {
+        expect(serializeJml(paragraphsWithNamespaces, ({content}) => content)).to.equal('This should be a complete and nice sentence, with many a different part.');
     });
 
     it('should return the output transformed by the provided transformation function', () => {
@@ -116,60 +122,37 @@ const paragraphs = {
 };
 
 const paragraphsWithNamespaces = {
-    elements: [{
+    'elements': [{
         'type': 'element',
-        'name': 'paragraph',
-        'attributes': {
-            'xmlns': 'http://example.com/ns',
-            'xmlns:ns': 'http://example.com/ns',
-        },
-        'elements': [
-            {'type': 'text', 'text': 'This '},
-            {
+        'name': 'ns:paragraph',
+        'attributes': {'xmlns:ns': 'http://example.com/ns', 'xmlns:an': 'http://example.com/another'},
+        'elements': [{'type': 'text', 'text': 'This '}, {
+            'type': 'element',
+            'name': 'bold',
+            'elements': [{'type': 'text', 'text': 'should'}],
+        }, {'type': 'text', 'text': ' be '}, {
+            'type': 'element',
+            'name': 'emph',
+            'attributes': {'xmlns': 'http://example.com/ns'},
+            'elements': [{'type': 'text', 'text': 'a '}, {
                 'type': 'element',
-                'name': 'ns:emph',
-                'attributes': {
-                    'style': 'italics',
-                },
-                'elements': [
-                    {'type': 'text', 'text': 'should be '},
-                    {
-                        'type': 'element',
-                        'name': 'bold',
-                        'attributes': {
-                            'xmlns': 'http://example.com/another',
-                        },
-                        'elements': [
-                            {'type': 'text', 'text': 'a'},
-                        ],
-                    },
-                    {'type': 'text', 'text': ' '},
-                    {
-                        'type': 'element',
-                        'name': 'inline',
-                        'elements': [
-                            {'type': 'text', 'text': 'correct and'},
-                        ],
-                    },
-                    {'type': 'text', 'text': ' complete'},
-                ],
-            },
-            {'type': 'text', 'text': ' sentence.'},
-            {
+                'name': 'underline',
+                'elements': [{'type': 'text', 'text': 'complete'}],
+            }, {'type': 'text', 'text': ' and nice '}, {
                 'type': 'element',
-                'name': 'link',
-                'elements': [
-                    {'type': 'text', 'text': ' Or not?'},
-                ],
-            },
-            {
-                'type': 'element',
-                'name': 'ns:inline',
-                'elements': [
-                    {'type': 'text', 'text': ' Thanks!'},
-                ],
-            },
-        ],
+                'name': 'strike',
+                'attributes': {'xmlns': 'http://example.com/another'},
+                'elements': [{'type': 'text', 'text': 'sentence'}],
+            }],
+        }, {'type': 'text', 'text': ', with '}, {
+            'type': 'element',
+            'name': 'an:stuff',
+            'elements': [{'type': 'text', 'text': 'many'}],
+        }, {'type': 'text', 'text': ' a '}, {
+            'type': 'element',
+            'name': 'an:link',
+            'elements': [{'type': 'text', 'text': 'different'}],
+        }, {'type': 'text', 'text': ' part.'}],
     }],
 };
 
