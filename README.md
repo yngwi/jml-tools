@@ -15,10 +15,10 @@ or
 ### Quick start
 
 ```js
-import {createJml} from 'json-ml-tools';
+import {create} from 'json-ml-tools';
 const name = 'person';
 const data = {content: 'Freddie Mercury'};
-const jmlObject = createJml(name, data);
+const jmlObject = create(name, data);
 console.log(jmlObject);
 
 // Output:
@@ -46,15 +46,15 @@ console.log(jmlObject);
 
 This library provides the following functionallities:
 
-### createJml
+### create
 
 Manually creates a JML object that is fully compatible with [xml-js](https://github.com/nashwaan/xml-js).
 
 ```js
-import {createJml} from 'json-ml-tools';
+import {create} from 'json-ml-tools';
 const name = 'person';
 const data = {content: 'Freddie Mercury'};
-const jmlObject = createJml(name, data);
+const jmlObject = create(name, data);
 console.log(jmlObject);
 ```
 

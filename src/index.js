@@ -1,5 +1,5 @@
-import createJmlObject from './modules/createJml';
-import transformJmlObject from './modules/serializeJml';
+import createJmlObject from './modules/create';
+import transformJmlObject from './modules/serialize';
 
 module.exports = {
     createJmlObject: createJmlObject,
