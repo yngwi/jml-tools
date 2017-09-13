@@ -1,6 +1,6 @@
 {
   "name": "json-ml-tools",
-  "version": "0.0.3-beta.1",
+  "version": "0.0.3",
   "description": "A set of tools to simplify usage of JSON-ML in JavaScript",
   "main": "dist-modules/",
   "files": [
