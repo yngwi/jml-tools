@@ -1,23 +1,23 @@
-# JSON-ML Tools
+# JML Tools
 
-This library is aimed at providing a set of tools to work with marked up data similar to _JSON-ML_ in JavaScript. It is assumed that any JSON-ML (abbreviated _JML_) objects have to be compatible to the _non-compact_ JSON structure proposed by the [xml-js library](https://github.com/nashwaan/xml-js) to be fully convertible to and from XML documents including _mixed-content elements_.
+This library is aimed at providing a set of tools to work with XML-based markup JSON data similar to (but not the same as) _JSON-ML_ in JavaScript. The "markup language" (_JML_) is defined by the _non-compact_ JSON structure proposed by the [xml-js library](https://github.com/nashwaan/xml-js). It can be converted lossless to and from XML documents including _mixed-content elements_. The tools are fully _namespace aware_.
 
-[![Build Status](https://travis-ci.org/yngwi/json-ml-tools.svg?branch=master)](https://travis-ci.org/yngwi/json-ml-tools)
+[![Build Status](https://travis-ci.org/yngwi/jml-tools.svg?branch=master)](https://travis-ci.org/yngwi/json-ml-tools)
 
 ## Usage
 
 ### Installation
 
-`npm install json-ml-tools --save`
+`npm install jml-tools --save`
 
 or
 
-`yarn add json-ml-tools`
+`yarn add jml-tools`
 
 ### Quick start
 
 ```js
-import {create} from 'json-ml-tools';
+import {create} from 'jml-tools';
 const name = 'person';
 const data = {content: 'Freddie Mercury'};
 const jmlObject = create(name, data);
@@ -77,7 +77,7 @@ An optional data object that can have any or all of the following properties:
 #### Usage example
 
 ```js
-import {create} from 'json-ml-tools';
+import {create} from 'jml-tools';
 const name = 'person';
 const data = {content: 'Freddie Mercury'};
 const jmlObject = create(name, data);
@@ -146,7 +146,7 @@ An optional object that describes the options for the serialization:
 #### <a name="serialize_usage_example"></a>Usage example
 
 ```js
-import {serialize} from 'json-ml-tools';
+import {serialize} from 'jml-tools';
 // original XML:
 // <paragraph xmlns="http://example.com/ns">JSON is just as <emphasized>fun</emphasized> as XML.</paragraph>
 const jmlObject = {
