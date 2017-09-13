@@ -4,7 +4,7 @@ import walkTree from '../../src/utils/walkTree';
 
 describe('walkTree', function () {
 
-    it('should do nothing when not provided with no data', function () {
+    it('should do nothing when called without arguments', function () {
         const result = [];
         walkTree();
         expect(result).to.deep.equal([]);
