@@ -1,8 +1,8 @@
 # JML Tools
 
-This library is aimed at providing a set of tools to work with XML-based markup JSON data similar to (but not the same as) _JSON-ML_ in JavaScript. The "markup language" (_JML_) is defined by the _non-compact_ JSON structure proposed by the [xml-js library](https://github.com/nashwaan/xml-js). It can be converted lossless to and from XML documents including _mixed-content elements_. The tools are fully _namespace aware_.
+[![npm version](https://badge.fury.io/js/jml-tools.svg)](https://badge.fury.io/js/jml-tools) [![Build Status](https://travis-ci.org/yngwi/jml-tools.svg?branch=master)](https://travis-ci.org/yngwi/jml-tools)
 
-[![Build Status](https://travis-ci.org/yngwi/jml-tools.svg?branch=master)](https://travis-ci.org/yngwi/jml-tools)
+This library is aimed at providing a set of tools to work with XML-based markup JSON data similar to (but not the same as) _JSON-ML_ in JavaScript. The "markup language" (_JML_) is defined by the _non-compact_ JSON structure proposed by the [xml-js library](https://github.com/nashwaan/xml-js). It can be converted lossless to and from XML documents including _mixed-content elements_. The tools are fully _namespace aware_.
 
 ## Usage
 
