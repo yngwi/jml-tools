@@ -2,6 +2,8 @@
 
 This library is aimed at providing a set of tools to work with marked up data similar to _JSON-ML_ in JavaScript. It is assumed that any JSON-ML (abbreviated _JML_) objects have to be compatible to the _non-compact_ JSON structure proposed by the [xml-js library](https://github.com/nashwaan/xml-js) to be fully convertible to and from XML documents including _mixed-content elements_.
 
+[![Build Status](https://travis-ci.org/yngwi/json-ml-tools.svg?branch=master)](https://travis-ci.org/yngwi/json-ml-tools)
+
 ## Usage
 
 ### Installation
