@@ -94,10 +94,14 @@ const transform = (jmlFragment, parentAttributes, mappings, options) => {
 };
 
 // Validate the options object and throw errors if appropriate
-const validateOptions = (options = {}) => {
+const validateOptions = (mappings = {}, options = {}) => {
     const {namespaces = []} = options;
-    for (let i = 0; i < namespaces.length; i++) {
-        if (isNil(namespaces[i].prefix)) throw Error(`Options not valid: ${JSON.stringify(namespaces[i])} doesn't have a prefix.`);
+    const names = Object.keys(mappings);
+    for (let i = 0; i < names.length; i++) {
+        const name = names[i];
+        const {prefix} = separateNameParts(name);
+        const namespace = findNamespace(namespaces, prefix, false);
+        if (!isNil(prefix) && isNil(namespace)) throw Error(`Options not valid: No namespace declared for prefix '${prefix}'`);
     }
 };
 
@@ -121,7 +125,7 @@ const validateOptions = (options = {}) => {
  * @return {null|string} The transformed object or null if the root element isn't a valid XML-JS compatible object.
  */
 export default (jmlObject, mappings, options = {}) => {
-    validateOptions(options);
+    validateOptions(mappings, options);
     if (!hasContent(jmlObject) || !hasContent(mappings)) return '';
     return transform(jmlObject.elements[0], {}, mappings, options);
 };
