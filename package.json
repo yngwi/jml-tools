@@ -25,9 +25,7 @@
     "babel-preset-env": "^1.6.0",
     "chai": "^4.1.2",
     "eslint": "^4.6.1",
-    "mocha": "^3.5.3"
-  },
-  "dependencies": {
+    "mocha": "^3.5.3",
     "xml-js": "^1.4.2"
   }
 }
