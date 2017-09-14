@@ -62,9 +62,9 @@ const stringifyAttributes = (attributes = []) => {
  * Creates a JML object.
  * @param {string} name The name. It must include the prefix, if any
  * @param {Object} [data={}] The object data
- * @param {Object[]} [data.namespaces] Namespace objects
- * @param {string} [data.namespaces[].prefix] The namespace prefix
- * @param {string} data.namespaces[].uri The namespace URI
+ * @param {Object[]} [data.namespaces] An array of namespace objects
+ * @param {string} [data.namespaces[].prefix] The namespace's prefix
+ * @param {string} data.namespaces[].uri The namespace's URI
  * @param {Object|Array|string} [data.content] The child content, either as a JML object, an array of JML objects or text content
  * @param {Object} [data.attributes] Any attributes as an object of key-value pairs; the value needs to be a string or it will be converted to one
  * @return {Object} Returns the JML object.

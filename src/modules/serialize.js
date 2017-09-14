@@ -118,9 +118,9 @@ const validateOptions = (mappings = {}, options = {}) => {
  * @param {Object} jmlObject The JML object
  * @param {function|Object} [mappings] The mappings, either as a single function applied to all elements or in form of key-value pairs that describe the mappings for each child object. Individual functional mappings are called with an object that contains the already serialized child content, the attribute object and the current objects' name. A '*' can be used as a wildcard for all not-mapped elements. <b>Note: To match a qualified object (that is in a namespace) the mapping needs to be prefixed and the matching namespace needs to be declared in options.namespaces!</b>
  * @param {Object} options The options object
- * @param {Object[]} [options.namespaces=[]] Namespace objects
- * @param {string} options.namespaces[].prefix The namespace prefix. This is mandatory!
- * @param {string} options.namespaces[].uri The namespace URI
+ * @param {Object[]} [options.namespaces=[]] An array of namespace objects
+ * @param {string} options.namespaces[].prefix The namespace's prefix
+ * @param {string} options.namespaces[].uri The namespace's URI
  * @param {boolean} [options.skipEmpty=false] Whether or not to skip empty elements
  * @return {null|string} The transformed object or null if the root element isn't a valid XML-JS compatible object.
  */
