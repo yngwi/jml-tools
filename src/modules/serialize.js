@@ -1,7 +1,10 @@
 import extractNamespaces from '../utils/extractNamespaces';
+import findDefaultNamespaceUri from '../utils/findDefaultNamespaceUri';
+import findNamespace from '../utils/findNamespace';
 import hasContent from '../utils/hasContent';
 import isNil from '../utils/isNil';
 import propOr from '../utils/propOr';
+import splitNamespaceName from '../utils/splitNamespaceName';
 import types from '../constants/types';
 
 // Creates the payload a mapping function will be called with
@@ -9,34 +12,18 @@ const createMappingPayload = (jmlFragment, content) => jmlFragment.type === type
     ? {content: jmlFragment.text}
     : {content, attributes: jmlFragment.attributes, name: jmlFragment.name};
 
-// Find a specific namespace in an array of namespaces. The value can be either an URI or a prefix
-const findNamespace = (namespaces, value, isUri = true) => {
-    for (let i = 0; i < namespaces.length; i++) {
-        const {prefix, uri} = namespaces[i];
-        if (isUri && uri === value || prefix === value) return namespaces[i];
-    }
-};
-
-// Find the default namespace URI in an array of namespaces
-const findDefaultUri = namespaces => {
-    for (let i = 0; i < namespaces.length; i++) {
-        const {prefix, uri} = namespaces[i];
-        if (isNil(prefix)) return uri;
-    }
-};
-
 // Find the matching mapping from the list of mappings according to the currently active name, namespaces and mapped namespaces
 const findMapping = (mappings, activeName, activeNamespaces, options) => {
     let matchingMapping;
     const {namespaces: mappedNamespaces = []} = options;
     if (hasContent(activeNamespaces)) {
-        const defaultUri = findDefaultUri(activeNamespaces);
-        const {prefix, name} = separateNameParts(activeName);
+        const defaultUri = findDefaultNamespaceUri(activeNamespaces);
+        const {prefix, name} = splitNamespaceName(activeName);
         if (isNil(defaultUri) && isNil(prefix)) {
             matchingMapping = propOr(undefined, activeName, mappings);
         } else {
-            const activeUri = hasContent(prefix) ? findNamespace(activeNamespaces, prefix, false).uri : defaultUri;
-            const matchingPrefix = propOr(undefined, 'prefix', findNamespace(mappedNamespaces, activeUri));
+            const activeUri = hasContent(prefix) ? findNamespace(prefix, activeNamespaces, false).uri : defaultUri;
+            const matchingPrefix = propOr(undefined, 'prefix', findNamespace(activeUri, mappedNamespaces));
             const prefixedActiveName = `${matchingPrefix}:${name}`;
             matchingMapping = mappings[prefixedActiveName];
         }
@@ -66,14 +53,6 @@ const mapContent = (jmlFragment, activeNamespaces, content, mappings, options) =
     }
 };
 
-// Separate an object name in its name and prefix
-const separateNameParts = prefixedName => {
-    const colonPosition = prefixedName.indexOf(':');
-    const prefix = colonPosition === -1 ? undefined : prefixedName.substring(0, colonPosition);
-    const name = prefixedName.substring(colonPosition + 1);
-    return {prefix, name};
-};
-
 // Recursive walk through a whole JML tree, extract content and apply mappings
 const transform = (jmlFragment, parentAttributes, mappings, options) => {
     const mergedAttributes = Object.assign({...parentAttributes}, propOr({}, 'attributes', jmlFragment));
@@ -99,8 +78,8 @@ const validateOptions = (mappings = {}, options = {}) => {
     const names = Object.keys(mappings);
     for (let i = 0; i < names.length; i++) {
         const name = names[i];
-        const {prefix} = separateNameParts(name);
-        const namespace = findNamespace(namespaces, prefix, false);
+        const {prefix} = splitNamespaceName(name);
+        const namespace = findNamespace(prefix, namespaces, false);
         if (!isNil(prefix) && isNil(namespace)) throw Error(`Options not valid: No namespace declared for prefix '${prefix}'`);
     }
 };
