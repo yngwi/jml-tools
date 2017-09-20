@@ -13,11 +13,11 @@ describe('evaluate', function () {
         expect(() => evaluate({}, jmlObject)).to.throw();
     });
 
-    it('should throw an error due to \u0027/\u0027 not being a valid path', function () {
+    it('should throw an error due to / not being a valid path', function () {
         expect(() => evaluate('/', jmlObject)).to.throw();
     });
 
-    it('should throw an error due to \u0027planets/inner\u0027 without leading \u0027/\u0027 not being a valid path', function () {
+    it('should throw an error due to planets/inner without leading / not being a valid path', function () {
         expect(() => evaluate('planets/inner', jmlObject)).to.throw();
     });
 
@@ -37,7 +37,7 @@ describe('evaluate', function () {
         expect(evaluate('', {some: 'object'})).to.deep.equal([]);
     });
 
-    it('should return an empty array when called with the wrong namespace', function () {
+    it('should return an empty array when called with an unused namespace', function () {
         expect(evaluate('/ns1:planets', jmlObject, options)).to.deep.equal([]); // "planets" doesn't have a namespace
     });
 
@@ -45,7 +45,7 @@ describe('evaluate', function () {
         expect(evaluate('/ns2:persons', jmlObject, options)).to.deep.equal([]); // "persons" is in the "ns1" namespace
     });
 
-    it('should return an empty array when called with the wrong namespace', function () {
+    it('should return an empty array when called with the wrong namespace for an object in the default namespace', function () {
         expect(evaluate('/persons', jmlObject, options)).to.deep.equal([]); // "persons" is in the "ns1" namespace
     });
 
@@ -57,7 +57,7 @@ describe('evaluate', function () {
         expect(evaluate('//ns1:person[@birt="1947-07-19"]', jmlObject, options)).to.deep.equal([]); // it's "birth" not "birt"
     });
 
-    it('should return an empty array when having a typo in the path', function () {
+    it('should return an empty array when missing () from text()', function () {
         expect(evaluate('//ns1:first/text', jmlObject, options)).to.deep.equal([]); // "text" instead of "text()" is considered an object instead of the text node
     });
 
@@ -67,56 +67,225 @@ describe('evaluate', function () {
         expect(evaluate('', jmlObject, options)).to.deep.equal([jmlObject]);
     });
 
-    it('should return the correct result', function () {
+    it('should return the correct result for //inner/text()', function () {
         expect(evaluate('//inner/text()', jmlObject, options)).to.deep.equal(['Earth', 'Mars']);
     });
 
-    it('should return the correct result', function () {
-        expect(evaluate('/ns1:persons/ns1:person', jmlObject, options)).to.deep.equal([{'elements': [{'type': 'element', 'name': 'person', 'attributes': {'xmlns': 'http://example.com/ns/1', 'xmlns:ns2': 'http://example.com/ns/2', 'xmlns:ns1': 'http://example.com/ns/1', 'birth': '1946-09-05'}, 'elements': [{'type': 'element', 'name': 'ns1:name', 'elements': [{'type': 'element', 'name': 'ns1:first', 'elements': [{'type': 'text', 'text': 'Freddie'}] }, {'type': 'element', 'name': 'ns1:last', 'elements': [{'type': 'text', 'text': 'Mercury'}] }] }, {'type': 'element', 'name': 'address', 'attributes': {'xmlns': 'http://example.com/2'}, 'elements': [{'type': 'element', 'name': 'street', 'elements': [{'type': 'text', 'text': 'Fake street'}] }, {'type': 'element', 'name': 'ns2:number', 'elements': [{'type': 'text', 'text': '123'}] }, {'type': 'element', 'name': 'ns2:city', 'elements': [{'type': 'text', 'text': 'London'}] }] }] }] }, {'elements': [{'type': 'element', 'name': 'ns1:person', 'attributes': {'xmlns': 'http://example.com/ns/1', 'xmlns:ns2': 'http://example.com/ns/2', 'xmlns:ns1': 'http://example.com/ns/1', 'birth': '1947-07-19'}, 'elements': [{'type': 'element', 'name': 'ns1:name', 'elements': [{'type': 'element', 'name': 'first', 'elements': [{'type': 'text', 'text': 'Brian'}] }, {'type': 'element', 'name': 'last', 'elements': [{'type': 'text', 'text': 'May'}] }] }] }] }]);
+    it('should return the correct result for /ns1:persons/ns1:person', function () {
+        expect(evaluate('/ns1:persons/ns1:person', jmlObject, options)).to.deep.equal([{
+            'elements': [{
+                'type': 'element',
+                'name': 'person',
+                'attributes': {
+                    'xmlns': 'http://example.com/ns/1',
+                    'xmlns:ns2': 'http://example.com/ns/2',
+                    'xmlns:ns1': 'http://example.com/ns/1',
+                    'birth': '1946-09-05',
+                },
+                'elements': [{
+                    'type': 'element',
+                    'name': 'ns1:name',
+                    'elements': [{
+                        'type': 'element',
+                        'name': 'ns1:first',
+                        'elements': [{'type': 'text', 'text': 'Freddie'}],
+                    }, {'type': 'element', 'name': 'ns1:last', 'elements': [{'type': 'text', 'text': 'Mercury'}]}],
+                }, {
+                    'type': 'element',
+                    'name': 'address',
+                    'attributes': {'xmlns': 'http://example.com/2'},
+                    'elements': [{
+                        'type': 'element',
+                        'name': 'street',
+                        'elements': [{'type': 'text', 'text': 'Fake street'}],
+                    }, {
+                        'type': 'element',
+                        'name': 'ns2:number',
+                        'elements': [{'type': 'text', 'text': '123'}],
+                    }, {'type': 'element', 'name': 'ns2:city', 'elements': [{'type': 'text', 'text': 'London'}]}],
+                }],
+            }],
+        }, {
+            'elements': [{
+                'type': 'element',
+                'name': 'ns1:person',
+                'attributes': {
+                    'xmlns': 'http://example.com/ns/1',
+                    'xmlns:ns2': 'http://example.com/ns/2',
+                    'xmlns:ns1': 'http://example.com/ns/1',
+                    'birth': '1947-07-19',
+                },
+                'elements': [{
+                    'type': 'element',
+                    'name': 'ns1:name',
+                    'elements': [{
+                        'type': 'element',
+                        'name': 'first',
+                        'elements': [{'type': 'text', 'text': 'Brian'}],
+                    }, {'type': 'element', 'name': 'last', 'elements': [{'type': 'text', 'text': 'May'}]}],
+                }],
+            }],
+        }]);
     });
 
-    it('should return the correct result', function () {
-        expect(evaluate('//ns1:person', jmlObject, options)).to.deep.equal([{'elements': [{'type': 'element', 'name': 'person', 'attributes': {'xmlns': 'http://example.com/ns/1', 'xmlns:ns2': 'http://example.com/ns/2', 'xmlns:ns1': 'http://example.com/ns/1', 'birth': '1946-09-05'}, 'elements': [{'type': 'element', 'name': 'ns1:name', 'elements': [{'type': 'element', 'name': 'ns1:first', 'elements': [{'type': 'text', 'text': 'Freddie'}] }, {'type': 'element', 'name': 'ns1:last', 'elements': [{'type': 'text', 'text': 'Mercury'}] }] }, {'type': 'element', 'name': 'address', 'attributes': {'xmlns': 'http://example.com/2'}, 'elements': [{'type': 'element', 'name': 'street', 'elements': [{'type': 'text', 'text': 'Fake street'}] }, {'type': 'element', 'name': 'ns2:number', 'elements': [{'type': 'text', 'text': '123'}] }, {'type': 'element', 'name': 'ns2:city', 'elements': [{'type': 'text', 'text': 'London'}] }] }] }] }, {'elements': [{'type': 'element', 'name': 'ns1:person', 'attributes': {'xmlns': 'http://example.com/ns/1', 'xmlns:ns2': 'http://example.com/ns/2', 'xmlns:ns1': 'http://example.com/ns/1', 'birth': '1947-07-19'}, 'elements': [{'type': 'element', 'name': 'ns1:name', 'elements': [{'type': 'element', 'name': 'first', 'elements': [{'type': 'text', 'text': 'Brian'}] }, {'type': 'element', 'name': 'last', 'elements': [{'type': 'text', 'text': 'May'}] }] }] }] }]);
+    it('should return the correct result for //ns1:person', function () {
+        expect(evaluate('//ns1:person', jmlObject, options)).to.deep.equal([{
+            'elements': [{
+                'type': 'element',
+                'name': 'person',
+                'attributes': {
+                    'xmlns': 'http://example.com/ns/1',
+                    'xmlns:ns2': 'http://example.com/ns/2',
+                    'xmlns:ns1': 'http://example.com/ns/1',
+                    'birth': '1946-09-05',
+                },
+                'elements': [{
+                    'type': 'element',
+                    'name': 'ns1:name',
+                    'elements': [{
+                        'type': 'element',
+                        'name': 'ns1:first',
+                        'elements': [{'type': 'text', 'text': 'Freddie'}],
+                    }, {'type': 'element', 'name': 'ns1:last', 'elements': [{'type': 'text', 'text': 'Mercury'}]}],
+                }, {
+                    'type': 'element',
+                    'name': 'address',
+                    'attributes': {'xmlns': 'http://example.com/2'},
+                    'elements': [{
+                        'type': 'element',
+                        'name': 'street',
+                        'elements': [{'type': 'text', 'text': 'Fake street'}],
+                    }, {
+                        'type': 'element',
+                        'name': 'ns2:number',
+                        'elements': [{'type': 'text', 'text': '123'}],
+                    }, {'type': 'element', 'name': 'ns2:city', 'elements': [{'type': 'text', 'text': 'London'}]}],
+                }],
+            }],
+        }, {
+            'elements': [{
+                'type': 'element',
+                'name': 'ns1:person',
+                'attributes': {
+                    'xmlns': 'http://example.com/ns/1',
+                    'xmlns:ns2': 'http://example.com/ns/2',
+                    'xmlns:ns1': 'http://example.com/ns/1',
+                    'birth': '1947-07-19',
+                },
+                'elements': [{
+                    'type': 'element',
+                    'name': 'ns1:name',
+                    'elements': [{
+                        'type': 'element',
+                        'name': 'first',
+                        'elements': [{'type': 'text', 'text': 'Brian'}],
+                    }, {'type': 'element', 'name': 'last', 'elements': [{'type': 'text', 'text': 'May'}]}],
+                }],
+            }],
+        }]);
     });
 
-    it('should return the correct result', function () {
-        expect(evaluate('//ns1:name', jmlObject, options)).to.deep.equal([{'elements': [{'type': 'element', 'name': 'ns1:name', 'attributes': {'xmlns': 'http://example.com/ns/1', 'xmlns:ns2': 'http://example.com/ns/2', 'xmlns:ns1': 'http://example.com/ns/1'}, 'elements': [{'type': 'element', 'name': 'ns1:first', 'elements': [{'type': 'text', 'text': 'Freddie'}] }, {'type': 'element', 'name': 'ns1:last', 'elements': [{'type': 'text', 'text': 'Mercury'}] }] }] }, {'elements': [{'type': 'element', 'name': 'ns1:name', 'attributes': {'xmlns': 'http://example.com/ns/1', 'xmlns:ns2': 'http://example.com/ns/2', 'xmlns:ns1': 'http://example.com/ns/1'}, 'elements': [{'type': 'element', 'name': 'first', 'elements': [{'type': 'text', 'text': 'Brian'}] }, {'type': 'element', 'name': 'last', 'elements': [{'type': 'text', 'text': 'May'}] }] }] }]);
+    it('should return the correct result for //ns1:name', function () {
+        expect(evaluate('//ns1:name', jmlObject, options)).to.deep.equal([{
+            'elements': [{
+                'type': 'element',
+                'name': 'ns1:name',
+                'attributes': {
+                    'xmlns': 'http://example.com/ns/1',
+                    'xmlns:ns2': 'http://example.com/ns/2',
+                    'xmlns:ns1': 'http://example.com/ns/1',
+                },
+                'elements': [{
+                    'type': 'element',
+                    'name': 'ns1:first',
+                    'elements': [{'type': 'text', 'text': 'Freddie'}],
+                }, {'type': 'element', 'name': 'ns1:last', 'elements': [{'type': 'text', 'text': 'Mercury'}]}],
+            }],
+        }, {
+            'elements': [{
+                'type': 'element',
+                'name': 'ns1:name',
+                'attributes': {
+                    'xmlns': 'http://example.com/ns/1',
+                    'xmlns:ns2': 'http://example.com/ns/2',
+                    'xmlns:ns1': 'http://example.com/ns/1',
+                },
+                'elements': [{
+                    'type': 'element',
+                    'name': 'first',
+                    'elements': [{'type': 'text', 'text': 'Brian'}],
+                }, {'type': 'element', 'name': 'last', 'elements': [{'type': 'text', 'text': 'May'}]}],
+            }],
+        }]);
     });
 
-    it('should return the correct result', function () {
-        expect(evaluate('//ns2:name', jmlObject, options)).to.deep.equal([{'elements':[{'type':'element','name':'ns2:name','attributes':{'xmlns':'http://example.com/ns/1','xmlns:ns2':'http://example.com/ns/2','xmlns:ns1':'http://example.com/ns/1'},'elements':[{'type':'text','text':'Last address'}]}]}]);
+    it('should return the correct result for //ns2:name', function () {
+        expect(evaluate('//ns2:name', jmlObject, options)).to.deep.equal([{
+            'elements': [{
+                'type': 'element',
+                'name': 'ns2:name',
+                'attributes': {
+                    'xmlns': 'http://example.com/ns/1',
+                    'xmlns:ns2': 'http://example.com/ns/2',
+                    'xmlns:ns1': 'http://example.com/ns/1',
+                },
+                'elements': [{'type': 'text', 'text': 'Last address'}],
+            }],
+        }]);
     });
 
-    it('should return the correct result', function () {
-        expect(evaluate('//*:name//text()', jmlObject, options)).to.deep.equal(['Freddie','Mercury','Brian','May','Last address']);
+    it('should return the correct result for //*:name//text()', function () {
+        expect(evaluate('//*:name//text()', jmlObject, options)).to.deep.equal(['Freddie', 'Mercury', 'Brian', 'May', 'Last address']);
     });
 
-    it('should return the correct result', function () {
-        expect(evaluate('//ns1:person//ns1:name/ns1:first', jmlObject, options)).to.deep.equal([{'elements':[{'type':'element','name':'ns1:first','attributes':{'xmlns':'http://example.com/ns/1','xmlns:ns2':'http://example.com/ns/2','xmlns:ns1':'http://example.com/ns/1'},'elements':[{'type':'text','text':'Freddie'}]}]},{'elements':[{'type':'element','name':'first','attributes':{'xmlns':'http://example.com/ns/1','xmlns:ns2':'http://example.com/ns/2','xmlns:ns1':'http://example.com/ns/1'},'elements':[{'type':'text','text':'Brian'}]}]}]);
+    it('should return the correct result for //ns1:person//ns1:name/ns1:first', function () {
+        expect(evaluate('//ns1:person//ns1:name/ns1:first', jmlObject, options)).to.deep.equal([{
+            'elements': [{
+                'type': 'element',
+                'name': 'ns1:first',
+                'attributes': {
+                    'xmlns': 'http://example.com/ns/1',
+                    'xmlns:ns2': 'http://example.com/ns/2',
+                    'xmlns:ns1': 'http://example.com/ns/1',
+                },
+                'elements': [{'type': 'text', 'text': 'Freddie'}],
+            }],
+        }, {
+            'elements': [{
+                'type': 'element',
+                'name': 'first',
+                'attributes': {
+                    'xmlns': 'http://example.com/ns/1',
+                    'xmlns:ns2': 'http://example.com/ns/2',
+                    'xmlns:ns1': 'http://example.com/ns/1',
+                },
+                'elements': [{'type': 'text', 'text': 'Brian'}],
+            }],
+        }]);
     });
 
-    it('should return the correct result', function () {
+    it('should return the correct result for //ns1:person[1]//ns1:first//text()', function () {
         expect(evaluate('//ns1:person[1]//ns1:first//text()', jmlObject, options)).to.deep.equal(['Freddie']);
     });
 
-    it('should return the correct result', function () {
+    it('should return the correct result for //ns:first[1]//text()', function () {
         expect(evaluate('//ns:first[1]//text()', jmlObject, options)).to.deep.equal(['Freddie', 'Brian']);
     });
 
-    it('should return the correct result', function () {
+    it('should return the correct result for //ns1:person[@birth="1947-07-19"]//ns1:first/text()', function () {
         expect(evaluate('//ns1:person[@birth="1947-07-19"]//ns1:first/text()', jmlObject, options)).to.deep.equal(['Brian']);
     });
 
-    it('should return the correct result', function () {
+    it('should return the correct result for //ns1:person[@birth!="1947-07-19"]//ns1:first/text()', function () {
         expect(evaluate('//ns1:person[@birth!="1947-07-19"]//ns1:first/text()', jmlObject, options)).to.deep.equal(['Freddie']);
     });
 
-    it('should return the correct result', function () {
-        expect(evaluate('//ns1:name/*/text()', jmlObject, options)).to.deep.equal(['Freddie','Mercury','Brian','May']);
+    it('should return the correct result for //ns1:name/*/text()', function () {
+        expect(evaluate('//ns1:name/*/text()', jmlObject, options)).to.deep.equal(['Freddie', 'Mercury', 'Brian', 'May']);
     });
 
-    it('should return the correct result', function () {
-        expect(evaluate('//ns1:person[.//ns1:last/text()="May"]//ns1:first/text()', jmlObject, options)).to.deep.equal(['Brian']);
+    it('should return the correct result for //ns1:person[.//ns1:last/text()="May"][1]//ns1:first/text()', function () {
+        expect(evaluate('//ns1:person[.//ns1:last/text()="May"][1]//ns1:first/text()', jmlObject, options)).to.deep.equal(['Brian']);
     });
 
 });
