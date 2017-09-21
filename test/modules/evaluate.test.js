@@ -67,8 +67,22 @@ describe('evaluate', function () {
         expect(evaluate('', jmlObject, options)).to.deep.equal([jmlObject]);
     });
 
-    it('should return the correct result for //inner/text()', function () {
-        expect(evaluate('//inner/text()', jmlObject, options)).to.deep.equal(['Earth', 'Mars']);
+    it('should return the correct result for /inner', function () {
+        expect(evaluate('/inner', simple)).to.deep.equal([{
+            'elements': [{
+                'type': 'element',
+                'name': 'inner',
+                'elements': [{'type': 'text', 'text': 'some text'}],
+            }],
+        }]);
+    });
+
+    it('should return the correct result for /planets/inner/text()', function () {
+        expect(evaluate('/planets/inner/text()', jmlObject, options)).to.deep.equal(['Earth', 'Mars']);
+    });
+
+    it('should return the correct result for /planets//text()', function () {
+        expect(evaluate('/planets//text()', jmlObject, options)).to.deep.equal(['Earth', 'Mars']);
     });
 
     it('should return the correct result for /ns1:persons/ns1:person', function () {
@@ -238,6 +252,10 @@ describe('evaluate', function () {
         expect(evaluate('//*:name//text()', jmlObject, options)).to.deep.equal(['Freddie', 'Mercury', 'Brian', 'May', 'Last address']);
     });
 
+    it('should return the correct result for //ns1:person/@birth', function () {
+        expect(evaluate('//ns1:person/@birth', jmlObject, options)).to.deep.equal(['1946-09-05', '1947-07-19']);
+    });
+
     it('should return the correct result for //ns1:person//ns1:name/ns1:first', function () {
         expect(evaluate('//ns1:person//ns1:name/ns1:first', jmlObject, options)).to.deep.equal([{
             'elements': [{
@@ -295,6 +313,15 @@ const options = {
         {prefix: 'ns1', uri: 'http://example.com/ns/1'},
         {prefix: 'ns2', uri: 'http://example.com/ns/2'},
     ],
+};
+
+// <outer><inner>some text</inner></outer>
+const simple = {
+    'elements': [{
+        'type': 'element',
+        'name': 'outer',
+        'elements': [{'type': 'element', 'name': 'inner', 'elements': [{'type': 'text', 'text': 'some text'}]}],
+    }],
 };
 
 /* <root

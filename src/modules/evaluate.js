@@ -1,154 +1,147 @@
+import extractNamespaces from '../utils/extractNamespaces';
+import findNamespace from '../utils/findNamespace';
+import findDefaultNamespaceUri from '../utils/findDefaultNamespaceUri';
 import hasContent from '../utils/hasContent';
+import isNil from '../utils/isNil';
 import isString from '../utils/isString';
 import propOr from '../utils/propOr';
-import rejectEmpty from '../utils/rejectEmpty';
-import wrapJmlFragments from '../utils/wrapJmlFragments';
+import splitNamespaceName from '../utils/splitNamespaceName';
+import pathOr from '../utils/pathOr';
 
-const PATH_WILDCARD = '%';
+const DESCENDANTS_SELECTOR = '%';
 
-const applyPositionFilter = (items, filter) => {
-    const {position} = filter;
-    if (hasContent(position)) {
-        return [items[position]];
-    } else {
-        return items;
+const separateStepAndConditions = (stepWithConditions = '') => {
+    const stepWithoutAttributeSelectors = stepWithConditions.split('@')[0];
+    // eslint-disable-next-line no-useless-escape
+    let conditions = stepWithoutAttributeSelectors.match(/\[[^\[]*\]/g);
+    conditions = Array.isArray(conditions) ? conditions : [];
+    let actualStep = stepWithoutAttributeSelectors;
+    const cleanConditions = [];
+    for (let i = 0; i < conditions.length; i++) {
+        actualStep = actualStep.replace(conditions[i], '');
+        // eslint-disable-next-line no-useless-escape
+        cleanConditions.push(conditions[i].replace(/[\[\]]/g, ''));
     }
-};
-
-const childAttributes = jsonML => propOr([], 'attributes', jsonML);
-
-const childElements = jsonML => {
-    if (Array.isArray(jsonML)) {
-        const children = [];
-        for (let i = 0; i < jsonML.length; i++) {
-            children.push(...propOr([], 'elements', jsonML[i]));
-        }
-        return children;
-    } else {
-        return propOr([], 'elements', jsonML);
-    }
-};
-
-const createFilterConfig = (filterString = '') => {
-    const parts = filterString.split('&');
-    const filter = {};
-    for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
-        if (Number(part) > 0) {
-            filter.position = Number(part) - 1;
-        } else if (/^@.*=.*$/.test(part)) {
-            const attributeParts = part.replace('@', '').split('=');
-            filter.attribute = {
-                name: attributeParts[0],
-                value: attributeParts[1],
-            };
-        }
-    }
-    return filter;
-};
-
-// Extracts the root element content for relative paths.
-const extractRoot = (jsonML, path) => path.startsWith('/') ? jsonML : childElements(jsonML)[0];
-
-// Calls the correct finder function for the current path segment (element, attribute, text)
-const findMatching = ({pathSegment, filterString}, jsonMLFragment) => {
-    const filter = createFilterConfig(filterString);
-    if (pathSegment === 'text()') {
-        return findTexts(jsonMLFragment, filter);
-    } else if (pathSegment.startsWith('@')) {
-        return findMatchingAttributes(pathSegment, jsonMLFragment, filter);
-    } else {
-        return findMatchingElements(pathSegment, jsonMLFragment, filter);
-    }
-};
-
-const findMatchingAttributes = (pathSegment, jsonMLFragment, filter) => {
-    const name = pathSegment.replace('@', '');
-    const attributes = childAttributes(jsonMLFragment);
-    const value = attributes[name];
-    if (hasContent(value)) {
-        return applyPositionFilter([value], filter);
-    } else {
-        return [];
-    }
-};
-
-const findMatchingElements = (pathSegment, jsonMlFragment, filter) => {
-    const elements = childElements(jsonMlFragment);
-    const matchingElements = [];
-    for (let i = 0; i < elements.length; i++) {
-        const element = elements[i];
-        if (element.name === pathSegment && isItemAttributeMatching(element, filter)) {
-            matchingElements.push(element);
-        }
-    }
-    return applyPositionFilter(matchingElements, filter);
-};
-
-const findTexts = (jsonMlFragment, filter) => {
-    const elements = childElements(jsonMlFragment);
-    const matchingElements = [];
-    for (let i = 0; i < elements.length; i++) {
-        const text = elements[i].text;
-        if (hasContent(text)) {
-            matchingElements.push(text);
-        }
-    }
-    return applyPositionFilter(matchingElements, filter);
-};
-
-const isItemAttributeMatching = (item, filter) => {
-    const {attribute} = filter;
-    if (hasContent(attribute)) {
-        const attributes = childAttributes(item);
-        return attributes[attribute.name] === attribute.value;
-    } else {
-        return true;
-    }
-};
-
-// Recursively finds the matching path segments
-const match = (jsonMLFragments, pathSegments) => {
-    if (noContent(pathSegments)) {
-        return jsonMLFragments;
-    } else {
-        const matching = [];
-        const currentSegment = splitPathSegment(pathSegments[0]);
-        for (let i = 0; i < jsonMLFragments.length; i++) {
-            const fragment = jsonMLFragments[i];
-            matching.push(...findMatching(currentSegment, fragment));
-        }
-        return [
-            ...currentSegment.hasWildcard && hasContent(jsonMLFragments) // add all child elements for wildcard search
-                ? match(childElements(jsonMLFragments), pathSegments)
-                : [],
-            ...noContent(matching)
-                ? []
-                : match(matching, pathSegments.slice(1)),
-        ];
-    }
-};
-
-const noContent = x => !hasContent(x);
-
-const splitPath = path => rejectEmpty(path.replace('//', `/${PATH_WILDCARD}`).split('/'));
-
-// Splits the path segment in the actual path and the filter
-const splitPathSegment = pathSegment => {
-    const parts = pathSegment.replace('][', '&').replace(']', '').replace(/\s*=\s*/, '=').split('[');
     return {
-        pathSegment: parts[0].replace(PATH_WILDCARD, ''),
-        filterString: parts[1],
-        hasWildcard: parts[0].startsWith(PATH_WILDCARD),
+        step: actualStep.replace(DESCENDANTS_SELECTOR, ''),
+        conditions: cleanConditions,
     };
 };
 
-const validatePath = path => {
-    if (!isString(path) || path === '/' || (path !== '' && !path.startsWith('/'))) throw new Error(`${JSON.stringify(path)} is not a valid path`);
+const getPathSteps = path => {
+    if (!hasContent(path)) return [];
+    let cleanPath = path.replace(/\/\//g, `/${DESCENDANTS_SELECTOR}`).replace(/\/@/g, '@');
+    // eslint-disable-next-line no-useless-escape
+    let conditions = cleanPath.match(/\[[^\[]*\]/g);
+    conditions = conditions === null ? [] : conditions;
+    for (let i = 0; i < conditions.length; i++) {
+        cleanPath = cleanPath.replace(conditions[i], `§${i}`);
+    }
+    const rawSteps = cleanPath.split('/');
+    const steps = [];
+    for (let i = 0; i < rawSteps.length; i++) {
+        let step = rawSteps[i];
+        for (let j = 0; j < conditions.length; j++) {
+            step = step.replace(`§${j}`, conditions[j]);
+        }
+        if (step !== '') steps.push(step);
+    }
+    return steps;
+};
+
+const evaluate = (steps, jmlFragments = [], parentAttributes = {}, declaredNamespaces = []) => {
+    if (!hasContent(steps)) {
+        return [];
+    } else {
+        const currentStep = steps[0];
+        const hasDescendantsSelector = currentStep.startsWith(DESCENDANTS_SELECTOR);
+        const hasFragments = hasContent(jmlFragments);
+        const results = [];
+        for (let i = 0; i < jmlFragments.length; i++) {
+            const currentJmlFragment = jmlFragments[i];
+            const mergedAttributes = Object.assign({...parentAttributes}, propOr({}, 'attributes', currentJmlFragment));
+            if (matches(currentStep, currentJmlFragment, mergedAttributes, declaredNamespaces)) {
+                if (currentStep.endsWith('text()')) {
+                    results.push(currentJmlFragment.text);
+                } else if (currentStep.includes('@')) {
+                    const attributeName = currentStep.split('@')[1];
+                    const attributeValue = pathOr(undefined, ['attributes', attributeName], currentJmlFragment);
+                    if (!isNil(attributeValue)) results.push(attributeValue);
+                } else if (steps.length === 1) {
+                    results.push(hasContent(mergedAttributes)
+                        ? updateNamespacesFromAttributes(currentJmlFragment, mergedAttributes)
+                        : currentJmlFragment);
+                }
+                results.push(...evaluate(steps.slice(1), currentJmlFragment.elements, mergedAttributes, declaredNamespaces));
+            }
+            if (hasDescendantsSelector && hasFragments) {
+                results.push(...evaluate(steps, currentJmlFragment.elements, mergedAttributes, declaredNamespaces));
+            }
+        }
+        return results;
+    }
+};
+
+// tests whether or not a JML fragment matches a step including namespace and conditions
+const matches = (completeStep, jmlFragment, activeAttributes = {}, declaredNamespaces = []) => {
+    const {step, conditions} = separateStepAndConditions(completeStep);
+    const isMatchingStep = matchesStep(step, jmlFragment, activeAttributes, declaredNamespaces);
+    const isMatchingConditions = matchesConditions(step, conditions, jmlFragment);
+    return isMatchingStep && isMatchingConditions;
+};
+
+const matchesConditions = (step, conditions, jmlFragment) => {
+    if (!hasContent(conditions)) return true;
+    // TODO weitermachen
+};
+
+// test whether or not a fragment matches a qualified name
+const matchesStep = (name, jmlFragment, activeAttributes, declaredNamespaces) => {
+    if (name === 'text()' || name === '*') return true;
+    const activeNamespaces = extractNamespaces(activeAttributes);
+    const fragmentDefaultUri = findDefaultNamespaceUri(activeNamespaces);
+    const {prefix: fragmentPrefix, name: fragmentName} = splitNamespaceName(jmlFragment.name);
+    if (!hasContent(activeNamespaces) || isNil(fragmentDefaultUri) && isNil(fragmentPrefix)) {
+        return fragmentName === name;
+    } else if (name.startsWith('*:')) {
+        const unqualifiedName = name.replace('*:', '');
+        return fragmentName === unqualifiedName;
+    } else {
+        const fragmentUri = hasContent(fragmentPrefix) ? findNamespace(fragmentPrefix, activeNamespaces, false).uri : fragmentDefaultUri;
+        const declaredNamespace = findNamespace(fragmentUri, declaredNamespaces);
+        const declaredPrefix = propOr(undefined, 'prefix', declaredNamespace);
+        if (hasContent(declaredNamespace) && isNil(declaredPrefix)) throw new Error(`No prefix declared for URI '${fragmentUri}'`);
+        return `${declaredPrefix}:${fragmentName}` === name;
+    }
+};
+
+const updateNamespacesFromAttributes = (jmlFragment, attributes) => {
+    const names = Object.keys(attributes);
+    for (let i = 0; i < names.length; i++) {
+        const name = names[i];
+        if (name.startsWith('xmlns')) {
+            if (!hasContent(jmlFragment.attributes)) jmlFragment.attributes = {};
+            jmlFragment.attributes[name] = attributes[name];
+        }
+    }
+    return jmlFragment;
+};
+
+const wrapResults = (results = []) => {
+    const wrapped = [];
+    for (let i = 0; i < results.length; i++) {
+        const result = results[i];
+        if (isString(result)) {
+            wrapped.push(result);
+        } else if (hasContent(result)) {
+            wrapped.push({elements: [result]});
+        }
+    }
+    return wrapped;
 };
 
 /**
- *
+ * Evaluates a path. A difference to XPath is that the value of an attribute can be accessed directly by /something/@attribute instead of data(/something/@attribute) or /something/@attribute/string()
  * @param {string} path The path to evaluate
  * @param {Object} jml The JML object to evaluate the path on
  * @param {Object} [options] The evaluation options
@@ -158,10 +151,12 @@ const validatePath = path => {
  * @return {Object[]} Returns an array with all matching parts of the evaluated JML object.
  */
 export default (path, jml, options = {}) => {
-    validatePath(path);
-    if (!hasContent(jml)) return [];
-    const jsonMLArray = [];
-    jsonMLArray.push(extractRoot(jml, path));
-    const segments = splitPath(path);
-    return noContent(segments) ? jsonMLArray : wrapJmlFragments(match(jsonMLArray, segments));
+    if (!isString(path) || path === '/' || (path !== '' && !path.startsWith('/'))) throw new Error(`${JSON.stringify(path)} is not a valid path`);
+    if (!hasContent(jml) || !Array.isArray(jml.elements)) return [];
+    const steps = getPathSteps(path);
+    const rootJmlFragment = jml.elements[0];
+    const results = hasContent(steps)
+        ? evaluate(steps, rootJmlFragment.elements, rootJmlFragment.attributes, options.namespaces)
+        : [rootJmlFragment];
+    return wrapResults(results);
 };
