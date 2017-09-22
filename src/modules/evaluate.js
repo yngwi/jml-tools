@@ -10,29 +10,29 @@ import pathOr from '../utils/pathOr';
 
 const DESCENDANTS_SELECTOR = '%';
 const POSITION_SELECTOR = '#';
+// eslint-disable-next-line no-useless-escape
+const REGEX_CONDITIONS = /\[[^\[]*\]/g;
+// eslint-disable-next-line no-useless-escape
+const REGEX_SQUARE_BRACKETS = /[\[\]]/g;
 
-const separateStepAndConditions = (stepWithConditions = '') => {
-    const stepWithoutAttributeSelectors = stepWithConditions.split('@')[0];
+const separateNameAndConditions = (step = '') => {
+    let name = step.replace(REGEX_CONDITIONS, '').split('@')[0].replace(DESCENDANTS_SELECTOR, '').replace(/#\d*/g, '');
     // eslint-disable-next-line no-useless-escape
-    let conditions = stepWithoutAttributeSelectors.match(/\[[^\[]*\]/g);
+    let conditions = step.match(REGEX_CONDITIONS);
     conditions = Array.isArray(conditions) ? conditions : [];
-    let actualStep = stepWithoutAttributeSelectors;
     const cleanConditions = [];
     for (let i = 0; i < conditions.length; i++) {
-        actualStep = actualStep.replace(conditions[i], '');
-        // eslint-disable-next-line no-useless-escape
-        cleanConditions.push(conditions[i].replace(/[\[\]]/g, ''));
+        cleanConditions.push(conditions[i].replace(REGEX_SQUARE_BRACKETS, ''));
     }
     return {
-        step: actualStep.replace(DESCENDANTS_SELECTOR, '').replace(/#\d*/g, ''),
+        name: name,
         conditions: cleanConditions,
     };
 };
 
 const getPathSteps = simplePath => {
     if (!hasContent(simplePath)) return [];
-    // eslint-disable-next-line no-useless-escape
-    let conditions = simplePath.match(/\[[^\[]*\]/g);
+    let conditions = simplePath.match(REGEX_CONDITIONS);
     conditions = conditions === null ? [] : conditions;
     for (let i = 0; i < conditions.length; i++) {
         simplePath = simplePath.replace(conditions[i], `§${i}`);
@@ -64,7 +64,7 @@ const evaluate = (steps, jmlFragments = [], parentAttributes = {}, declaredNames
                     if (currentStep.endsWith('text()')) {
                         results.push(currentJmlFragment.text);
                     } else if (currentStep.includes('@')) {
-                        const attributeName = currentStep.split('@')[1];
+                        const attributeName = currentStep.substring(currentStep.lastIndexOf('@') + 1);
                         const attributeValue = pathOr(undefined, ['attributes', attributeName], currentJmlFragment);
                         if (!isNil(attributeValue)) results.push(attributeValue);
                     } else {
@@ -97,18 +97,53 @@ const evaluate = (steps, jmlFragments = [], parentAttributes = {}, declaredNames
 
 // tests whether or not a JML fragment matches a step including namespace and conditions
 const isMatching = (completeStep, jmlFragment, activeAttributes = {}, declaredNamespaces = []) => {
-    const {step, conditions} = separateStepAndConditions(completeStep);
-    return isMatchingStep(step, jmlFragment, activeAttributes, declaredNamespaces) && isMatchingConditions(step, conditions, jmlFragment);
+    const {name, conditions} = separateNameAndConditions(completeStep);
+    return isMatchingName(name, jmlFragment, activeAttributes, declaredNamespaces)
+        && isMatchingConditions(conditions, jmlFragment, activeAttributes, declaredNamespaces);
 };
 
-const isMatchingConditions = (step, conditions, jmlFragment) => {
-    if (!hasContent(conditions)) return true;
-    // TODO weitermachen
+const isMatchingConditions = (conditions = [], jmlFragment, activeAttributes, declaredNamespaces) => {
+    let isMatching = true;
+    for (let i = 0; i < conditions.length; i++) {
+        const condition = conditions[i];
+        const operator = condition.match(/(=|!=|<|<=|>|>=)/g)[0];
+        const operands = condition.split(operator);
+        const evaluatedOperands = [];
+        for (let j = 0; j < 2; j++) {
+            const value = /(\.\/|@|text\(\))/.test(operands[j])
+                ? evaluate(getPathSteps(operands[j]), [jmlFragment], activeAttributes, declaredNamespaces)[0]
+                : operands[j].replace(/["']/g, '');
+            evaluatedOperands.push(isNil(value) ? '' : value);
+        }
+        let comparisonResult;
+        switch (operator) {
+            case '=':
+                comparisonResult = evaluatedOperands[0] === evaluatedOperands[1];
+                break;
+            case '!=':
+                comparisonResult = evaluatedOperands[0] !== evaluatedOperands[1];
+                break;
+            case '<':
+                comparisonResult = evaluatedOperands[0] < evaluatedOperands[1];
+                break;
+            case '<=':
+                comparisonResult = evaluatedOperands[0] <= evaluatedOperands[1];
+                break;
+            case '>':
+                comparisonResult = evaluatedOperands[0] > evaluatedOperands[1];
+                break;
+            case '>=':
+                comparisonResult = evaluatedOperands[0] >= evaluatedOperands[1];
+                break;
+        }
+        if (!comparisonResult) isMatching = false;
+    }
+    return isMatching;
 };
 
 // test whether or not a fragment matches a qualified name
-const isMatchingStep = (name, jmlFragment, activeAttributes, declaredNamespaces) => {
-    if (name === 'text()' || name === '*') return true;
+const isMatchingName = (name, jmlFragment, activeAttributes, declaredNamespaces) => {
+    if (!hasContent(name) || name === 'text()' || name === '*') return true;
     const activeNamespaces = extractNamespaces(activeAttributes);
     const fragmentDefaultUri = findDefaultNamespaceUri(activeNamespaces);
     const {prefix: fragmentPrefix, name: fragmentName} = splitNamespaceName(jmlFragment.name);
@@ -135,13 +170,12 @@ const push = (item, array) => {
 };
 
 const simplifyPath = (path = '') => {
-    let simplePath = path.replace(/\/\//g, `/${DESCENDANTS_SELECTOR}`).replace(/\/@/g, '@');
+    let simplePath = path.replace(/\/\//g, `/${DESCENDANTS_SELECTOR}`).replace(/\/@/g, '@').replace(/\.\//g, '/');
     const positionSelectors = simplePath.match(/\[\d*\]/g);
     if (hasContent(positionSelectors)) {
         for (let i = 0; i < positionSelectors.length; i++) {
             const selector = positionSelectors[i];
-            // eslint-disable-next-line no-useless-escape
-            const number = selector.replace(/[\[\]]/g, '');
+            const number = selector.replace(REGEX_SQUARE_BRACKETS, '');
             simplePath = simplePath.replace(selector, `${POSITION_SELECTOR}${number}`);
         }
     }
