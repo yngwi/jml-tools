@@ -9,6 +9,7 @@ import splitNamespaceName from '../utils/splitNamespaceName';
 import pathOr from '../utils/pathOr';
 
 const DESCENDANTS_SELECTOR = '%';
+const POSITION_SELECTOR = '#';
 
 const separateStepAndConditions = (stepWithConditions = '') => {
     const stepWithoutAttributeSelectors = stepWithConditions.split('@')[0];
@@ -23,21 +24,20 @@ const separateStepAndConditions = (stepWithConditions = '') => {
         cleanConditions.push(conditions[i].replace(/[\[\]]/g, ''));
     }
     return {
-        step: actualStep.replace(DESCENDANTS_SELECTOR, ''),
+        step: actualStep.replace(DESCENDANTS_SELECTOR, '').replace(/#\d*/g, ''),
         conditions: cleanConditions,
     };
 };
 
-const getPathSteps = path => {
-    if (!hasContent(path)) return [];
-    let cleanPath = path.replace(/\/\//g, `/${DESCENDANTS_SELECTOR}`).replace(/\/@/g, '@');
+const getPathSteps = simplePath => {
+    if (!hasContent(simplePath)) return [];
     // eslint-disable-next-line no-useless-escape
-    let conditions = cleanPath.match(/\[[^\[]*\]/g);
+    let conditions = simplePath.match(/\[[^\[]*\]/g);
     conditions = conditions === null ? [] : conditions;
     for (let i = 0; i < conditions.length; i++) {
-        cleanPath = cleanPath.replace(conditions[i], `§${i}`);
+        simplePath = simplePath.replace(conditions[i], `§${i}`);
     }
-    const rawSteps = cleanPath.split('/');
+    const rawSteps = simplePath.split('/');
     const steps = [];
     for (let i = 0; i < rawSteps.length; i++) {
         let step = rawSteps[i];
@@ -54,8 +54,6 @@ const evaluate = (steps, jmlFragments = [], parentAttributes = {}, declaredNames
         return [];
     } else {
         const currentStep = steps[0];
-        const hasDescendantsSelector = currentStep.startsWith(DESCENDANTS_SELECTOR);
-        const hasFragments = hasContent(jmlFragments);
         const results = [];
         for (let i = 0; i < jmlFragments.length; i++) {
             const currentJmlFragment = jmlFragments[i];
@@ -74,7 +72,7 @@ const evaluate = (steps, jmlFragments = [], parentAttributes = {}, declaredNames
                 }
                 results.push(...evaluate(steps.slice(1), currentJmlFragment.elements, mergedAttributes, declaredNamespaces));
             }
-            if (hasDescendantsSelector && hasFragments) {
+            if (currentStep.startsWith(DESCENDANTS_SELECTOR) && hasContent(jmlFragments)) {
                 results.push(...evaluate(steps, currentJmlFragment.elements, mergedAttributes, declaredNamespaces));
             }
         }
@@ -115,6 +113,20 @@ const matchesStep = (name, jmlFragment, activeAttributes, declaredNamespaces) =>
     }
 };
 
+const simplifyPath = (path = '') => {
+    let simplePath = path.replace(/\/\//g, `/${DESCENDANTS_SELECTOR}`).replace(/\/@/g, '@');
+    const positionSelectors = simplePath.match(/\[\d*\]/g);
+    if (hasContent(positionSelectors)) {
+        for (let i = 0; i < positionSelectors.length; i++) {
+            const selector = positionSelectors[i];
+            // eslint-disable-next-line no-useless-escape
+            const number = selector.replace(/[\[\]]/g, '');
+            simplePath = simplePath.replace(selector, `${POSITION_SELECTOR}${number}`);
+        }
+    }
+    return simplePath;
+};
+
 const updateNamespacesFromAttributes = (jmlFragment, attributes) => {
     const names = Object.keys(attributes);
     for (let i = 0; i < names.length; i++) {
@@ -153,7 +165,7 @@ const wrapResults = (results = []) => {
 export default (path, jml, options = {}) => {
     if (!isString(path) || path === '/' || (path !== '' && !path.startsWith('/'))) throw new Error(`${JSON.stringify(path)} is not a valid path`);
     if (!hasContent(jml) || !Array.isArray(jml.elements)) return [];
-    const steps = getPathSteps(path);
+    const steps = getPathSteps(simplifyPath(path));
     const rootJmlFragment = jml.elements[0];
     const results = hasContent(steps)
         ? evaluate(steps, rootJmlFragment.elements, rootJmlFragment.attributes, options.namespaces)
