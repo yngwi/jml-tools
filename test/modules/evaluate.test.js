@@ -153,6 +153,7 @@ describe('evaluate', function () {
                     }],
                 }],
                 'attributes': {
+                    'age': '38',
                     'xmlns:ns1': 'http://example.com/ns/1',
                     'xmlns:ns2': 'http://example.com/ns/2',
                     'xmlns': 'http://example.com/ns/1',
@@ -229,6 +230,7 @@ describe('evaluate', function () {
                     }],
                 }],
                 'attributes': {
+                    'age': '38',
                     'xmlns:ns1': 'http://example.com/ns/1',
                     'xmlns:ns2': 'http://example.com/ns/2',
                     'xmlns': 'http://example.com/ns/1',
@@ -380,6 +382,10 @@ describe('evaluate', function () {
         expect(evaluate('//ns1:person[@birth=""]//text()', jmlObject, options)).to.deep.equal(['Daniel']);
     });
 
+    it('should return the correct result for //ns1:person[@age=38]//text()', function () {
+        expect(evaluate('//ns1:person[@age=38]//text()', jmlObject, options)).to.deep.equal(['Daniel']);
+    });
+
     it('should return the correct result for //ns1:person[@birth!="1947-07-19"]//ns1:first/text()', function () {
         expect(evaluate('//ns1:person[@birth!="1947-07-19"]//ns1:first/text()', jmlObject, options)).to.deep.equal(['Freddie', 'Daniel']);
     });
@@ -441,6 +447,11 @@ const simple = {
             <ns1:name>
                 <first>Brian</first>
                 <last>May</last>
+            </ns1:name>
+        </ns1:person>
+        <ns1:person age="38">
+            <ns1:name>
+                <first>Daniel</first>
             </ns1:name>
         </ns1:person>
     </ns1:persons>
@@ -516,6 +527,7 @@ const jmlObject = {
             }, {
                 'type': 'element',
                 'name': 'ns1:person',
+                'attributes': {'age': '38'},
                 'elements': [{
                     'type': 'element',
                     'name': 'ns1:name',
