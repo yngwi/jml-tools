@@ -286,8 +286,12 @@ describe('evaluate', function () {
         expect(evaluate('//ns1:person[1]//ns1:first//text()', jmlObject, options)).to.deep.equal(['Freddie']);
     });
 
-    it('should return the correct result for //ns:first[1]//text()', function () {
-        expect(evaluate('//ns:first[1]//text()', jmlObject, options)).to.deep.equal(['Freddie', 'Brian']);
+    it('should return the correct result for //ns1:first[1]/text()', function () {
+        expect(evaluate('//ns1:first[1]/text()', jmlObject, options)).to.deep.equal(['Freddie']);
+    });
+
+    it('should return the correct result for //ns1:name/ns1:first[1]/text()', function () {
+        expect(evaluate('//ns1:name/ns1:first[1]/text()', jmlObject, options)).to.deep.equal(['Freddie', 'Brian']);
     });
 
     it('should return the correct result for //ns1:person[@birth="1947-07-19"]//ns1:first/text()', function () {
