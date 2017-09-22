@@ -370,7 +370,6 @@ describe('evaluate', function () {
     });
 
     it('should return the correct result for //ns1:person[@birth=\u00271947-07-19\u0027]//ns1:first/text()', function () {
-        // eslint-disable-next-line quotes
         expect(evaluate('//ns1:person[@birth=\u00271947-07-19\u0027]//ns1:first/text()', jmlObject, options)).to.deep.equal(['Brian']);
     });
 
