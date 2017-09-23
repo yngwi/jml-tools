@@ -12,8 +12,11 @@ import hasContent from './hasContent';
 export default namespaceName => {
     if (!hasContent(namespaceName)) return {};
     const colonPosition = namespaceName.indexOf(':');
-    if (!isString(namespaceName) || colonPosition === 0 || colonPosition === namespaceName.length - 1) throw new Error(`'${namespaceName}' is an invalid namespace name`);
-    const prefix = colonPosition === -1 ? undefined : namespaceName.substring(0, colonPosition);
-    const name = namespaceName.substring(colonPosition + 1);
-    return hasContent(prefix) ? {prefix, name} : {name};
+    if (colonPosition === -1) {
+        return {name: namespaceName};
+    } else if (colonPosition > 1) {
+        const prefix = namespaceName.substring(0, colonPosition);
+        const name = namespaceName.substring(colonPosition + 1);
+        return {prefix, name};
+    }
 };

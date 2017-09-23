@@ -16,14 +16,6 @@ describe('splitNamespaceName', function () {
         expect(() => splitNamespaceName({some: 'object'})).to.throw();
     });
 
-    it('should throw an error due to starting with a colon', () => {
-        expect(() => splitNamespaceName(':example')).to.throw();
-    });
-
-    it('should throw an error due to ending with a colon', () => {
-        expect(() => splitNamespaceName('example:')).to.throw();
-    });
-
     it('should return an object with the name', () => {
         expect(splitNamespaceName('example')).to.deep.equal({name: 'example'});
     });

@@ -1,3 +1,4 @@
+import addToArray from './addToArray';
 import hasContent from './hasContent';
 
 export default (attributes = {}) => {
@@ -13,7 +14,7 @@ export default (attributes = {}) => {
             namespace.uri = attributes[name];
         }
         if (hasContent(namespace)) {
-            namespaces.push(namespace);
+            addToArray(namespaces, namespace);
         }
     }
     return namespaces;

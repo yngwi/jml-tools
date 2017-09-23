@@ -145,13 +145,13 @@ const isMatchingConditions = (conditions = [], jmlFragment, activeAttributes, de
 
 // test whether or not a fragment matches a qualified name
 const isMatchingName = (name, jmlFragment, activeAttributes, declaredNamespaces) => {
-    if (!hasContent(name) || name === 'text()' || name === '*') return true;
+    if (!hasContent(name) || /(^(text\(\)|\*)$)/.test(name)) return true;
     const activeNamespaces = extractNamespaces(activeAttributes);
     const fragmentDefaultUri = findDefaultNamespaceUri(activeNamespaces);
     const {prefix: fragmentPrefix, name: fragmentName} = splitNamespaceName(jmlFragment.name);
     if (!hasContent(activeNamespaces) || isNil(fragmentDefaultUri) && isNil(fragmentPrefix)) {
         return fragmentName === name;
-    } else if (name.startsWith('*:')) {
+    } else if (name[0] === '*') {
         const unqualifiedName = name.replace('*:', '');
         return fragmentName === unqualifiedName;
     } else {

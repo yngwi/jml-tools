@@ -10,7 +10,8 @@
 export default (value, namespaces, isUri = true) => {
     if (!Array.isArray(namespaces)) return undefined;
     for (let i = 0; i < namespaces.length; i++) {
-        const {prefix, uri} = namespaces[i];
-        if (!isUri && prefix === value || uri === value) return namespaces[i];
+        const namespace = namespaces[i];
+        const {prefix, uri} = namespace;
+        if (!isUri && prefix === value || uri === value) return namespace;
     }
 };

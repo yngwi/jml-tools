@@ -1,5 +1,3 @@
-import isNil from './isNil';
-
 /**
  * Finds the URI of the default namespace in an array of namespaces. The default namespace is assumed to be the first namespace without prefix.
  * @param {Object[]} namespaces=[] An array of namespace objects
@@ -11,6 +9,6 @@ export default namespaces => {
     if (!Array.isArray(namespaces)) return undefined;
     for (let i = 0; i < namespaces.length; i++) {
         const {prefix, uri} = namespaces[i];
-        if (isNil(prefix)) return uri;
+        if (!prefix) return uri;
     }
 };
