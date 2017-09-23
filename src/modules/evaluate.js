@@ -1,12 +1,14 @@
+import addToArray from '../utils/addToArray';
 import extractNamespaces from '../utils/extractNamespaces';
 import findNamespace from '../utils/findNamespace';
 import findDefaultNamespaceUri from '../utils/findDefaultNamespaceUri';
 import hasContent from '../utils/hasContent';
 import isNil from '../utils/isNil';
 import isString from '../utils/isString';
+import mergeObjects from '../utils/mergeObjects';
 import propOr from '../utils/propOr';
-import splitNamespaceName from '../utils/splitNamespaceName';
 import pathOr from '../utils/pathOr';
+import splitNamespaceName from '../utils/splitNamespaceName';
 
 const DESCENDANTS_SELECTOR = '%';
 const POSITION_SELECTOR = '#';
@@ -22,7 +24,7 @@ const separateNameAndConditions = (step = '') => {
     conditions = Array.isArray(conditions) ? conditions : [];
     const cleanConditions = [];
     for (let i = 0; i < conditions.length; i++) {
-        cleanConditions.push(conditions[i].replace(REGEX_SQUARE_BRACKETS, ''));
+        addToArray(cleanConditions, conditions[i].replace(REGEX_SQUARE_BRACKETS, ''));
     }
     return {
         name: name,
@@ -31,7 +33,6 @@ const separateNameAndConditions = (step = '') => {
 };
 
 const getPathSteps = simplePath => {
-    if (!hasContent(simplePath)) return [];
     let conditions = simplePath.match(REGEX_CONDITIONS);
     conditions = conditions === null ? [] : conditions;
     for (let i = 0; i < conditions.length; i++) {
@@ -44,55 +45,56 @@ const getPathSteps = simplePath => {
         for (let j = 0; j < conditions.length; j++) {
             step = step.replace(`§${j}`, conditions[j]);
         }
-        if (step !== '') steps.push(step);
+        if (step !== '') addToArray(steps, step);
     }
     return steps;
 };
 
 const evaluate = (steps, jmlFragments = [], parentAttributes = {}, declaredNamespaces = []) => {
-    if (!hasContent(steps)) {
-        return [];
-    } else {
-        const currentStep = steps[0];
-        const results = [];
-        const toEvaluate = [];
-        for (let i = 0; i < jmlFragments.length; i++) {
-            const currentJmlFragment = jmlFragments[i];
-            const mergedAttributes = Object.assign({...parentAttributes}, propOr({}, 'attributes', currentJmlFragment));
-            if (isMatching(currentStep, currentJmlFragment, mergedAttributes, declaredNamespaces)) {
-                if (steps.length === 1) {
-                    if (currentStep.endsWith('text()')) {
-                        results.push(currentJmlFragment.text);
-                    } else if (currentStep.includes('@')) {
-                        const attributeName = currentStep.substring(currentStep.lastIndexOf('@') + 1);
-                        const attributeValue = pathOr(undefined, ['attributes', attributeName], currentJmlFragment);
-                        if (!isNil(attributeValue)) results.push(attributeValue);
-                    } else {
-                        results.push(hasContent(mergedAttributes)
-                            ? updateNamespacesFromAttributes(currentJmlFragment, mergedAttributes)
-                            : currentJmlFragment);
-                    }
+    const currentStep = steps[0];
+    const results = [];
+    const toEvaluate = [];
+    for (let i = 0; i < jmlFragments.length; i++) {
+        const currentJmlFragment = jmlFragments[i];
+        const mergedAttributes = mergeObjects(parentAttributes, propOr({}, 'attributes', currentJmlFragment));
+        if (isMatching(currentStep, currentJmlFragment, mergedAttributes, declaredNamespaces)) {
+            if (steps.length === 1) {
+                if (currentStep.endsWith('text()')) {
+                    addToArray(results, currentJmlFragment.text);
+                } else if (currentStep.includes('@')) {
+                    const attributeName = currentStep.substring(currentStep.lastIndexOf('@') + 1);
+                    const attributeValue = pathOr(undefined, ['attributes', attributeName], currentJmlFragment);
+                    if (!isNil(attributeValue)) addToArray(results, attributeValue);
                 } else {
-                    toEvaluate.push({
-                        steps: steps.slice(1),
-                        fragments: currentJmlFragment.elements,
-                        attributes: mergedAttributes,
-                    });
+                    addToArray(results, hasContent(mergedAttributes)
+                        ? updateNamespacesFromAttributes(currentJmlFragment, mergedAttributes)
+                        : currentJmlFragment);
                 }
-            }
-            if (currentStep.startsWith(DESCENDANTS_SELECTOR) && hasContent(jmlFragments)) {
-                toEvaluate.push({steps: steps, fragments: currentJmlFragment.elements, attributes: mergedAttributes});
+            } else {
+                addToArray(toEvaluate, {
+                    steps: steps.slice(1),
+                    fragments: currentJmlFragment.elements,
+                    attributes: mergedAttributes,
+                });
             }
         }
-        const successfulEvaluations = [];
-        for (let i = 0; i < toEvaluate.length; i++) {
-            const evaluationResults = evaluate(toEvaluate[i].steps, toEvaluate[i].fragments, toEvaluate[i].attributes, declaredNamespaces);
-            if (hasContent(evaluationResults)) push(evaluationResults, successfulEvaluations);
+        if (currentStep.startsWith(DESCENDANTS_SELECTOR) && hasContent(jmlFragments)) {
+            addToArray(toEvaluate, {
+                steps: steps,
+                fragments: currentJmlFragment.elements,
+                attributes: mergedAttributes,
+            });
         }
-        return currentStep.includes(POSITION_SELECTOR)
-            ? successfulEvaluations[currentStep.replace(/.*#/g, '') - 1]
-            : [...results, ...successfulEvaluations];
     }
+    const successfulEvaluations = [];
+    for (let i = 0; i < toEvaluate.length; i++) {
+        const evaluationResults = evaluate(toEvaluate[i].steps, toEvaluate[i].fragments, toEvaluate[i].attributes, declaredNamespaces);
+        if (hasContent(evaluationResults)) addToArray(successfulEvaluations, evaluationResults);
+    }
+    addToArray(results, currentStep.includes(POSITION_SELECTOR)
+        ? successfulEvaluations[currentStep.replace(/.*#/g, '') - 1]
+        : successfulEvaluations);
+    return results;
 };
 
 // tests whether or not a JML fragment matches a step including namespace and conditions
@@ -113,7 +115,7 @@ const isMatchingConditions = (conditions = [], jmlFragment, activeAttributes, de
             const value = /(\.\/|@|text\(\))/.test(operands[j])
                 ? evaluate(getPathSteps(operands[j]), [jmlFragment], activeAttributes, declaredNamespaces)[0]
                 : operands[j].replace(/["']/g, '');
-            evaluatedOperands.push(isNil(value) ? '' : value);
+            addToArray(evaluatedOperands, hasContent(value) ? value : '');
         }
         let comparisonResult;
         switch (operator) {
@@ -161,14 +163,6 @@ const isMatchingName = (name, jmlFragment, activeAttributes, declaredNamespaces)
     }
 };
 
-const push = (item, array) => {
-    if (Array.isArray(item)) {
-        return array.push(...item);
-    } else {
-        return array.push(item);
-    }
-};
-
 const simplifyPath = (path = '') => {
     let simplePath = path.replace(/\/\//g, `/${DESCENDANTS_SELECTOR}`).replace(/\/@/g, '@').replace(/\.\//g, '/');
     const positionSelectors = simplePath.match(/\[\d*\]/g);
@@ -200,9 +194,11 @@ const wrapResults = (results = []) => {
         for (let i = 0; i < results.length; i++) {
             const result = results[i];
             if (isString(result)) {
-                wrapped.push(result);
-            } else if (hasContent(result)) {
-                wrapped.push({elements: [result]});
+                addToArray(wrapped, result);
+            } else {
+                if (hasContent(result)) {
+                    addToArray(wrapped, {elements: [result]});
+                }
             }
         }
         return wrapped;
@@ -212,7 +208,7 @@ const wrapResults = (results = []) => {
 };
 
 /**
- * Evaluates a path.
+ * Evaluates a path expression similar to XPath on a JML object.
  * Differences to XPath:
  * * The value of an attribute can be accessed directly by /something/@attribute instead of data(/something/@attribute) or /something/@attribute/string()
  * * Considering the following xml <persons><person><name><given>Freddy</given></name></person><person><name><given>Brian</given></name></person></persons> '//given[1]' returns the first of all 'given' elements, wherever they appear, instead of the first 'given' element in each individual context like in XPath. This can be achieved by '//name/given[1]'
