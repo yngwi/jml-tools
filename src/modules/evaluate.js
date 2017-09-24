@@ -160,7 +160,7 @@ const simplifyPath = (path = '') => {
             simplePath = simplePath.replace(selector, `${POSITION_SELECTOR}${number}`);
         }
     }
-    return simplePath.substring(1);
+    return simplePath.substring(1); // omit the first '/'
 };
 
 // updates an JML fragments namespace attributes from a provided attributes object
