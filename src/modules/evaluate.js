@@ -12,14 +12,23 @@ import splitNamespaceName from '../utils/splitNamespaceName';
 
 const DESCENDANTS_SELECTOR = '%';
 const POSITION_SELECTOR = '#';
+const REGEX_CONDITION_OPERATOR = /(=|!=|<|<=|>|>=)/g;
 // eslint-disable-next-line no-useless-escape
 const REGEX_CONDITIONS = /\[[^\[]*\]/g;
+const REGEX_DOT_SLASH = /\.\//g;
+const REGEX_DOUBLE_SLASH = /\/\//g;
+const REGEX_IS_CONDITION_PATH_PART = /(\.\/|@|text\(\))/;
+const REGEX_IS_TEXT_OR_WILDCARD = /(^(text\(\)|\*)$)/;
+const REGEX_POSITION_SELECTOR = /\[\d*\]/g;
+const REGEX_QUOTES = /["']/g;
+const REGEX_SLASH_AT = /\/@/g;
 // eslint-disable-next-line no-useless-escape
 const REGEX_SQUARE_BRACKETS = /[\[\]]/g;
+// eslint-disable-next-line no-useless-escape
+const REGEX_STEP_NOT_NAME = new RegExp(`(${DESCENDANTS_SELECTOR}|[@\[${POSITION_SELECTOR}}].*)`, 'g');
 
 const separateNameAndConditions = (step = '') => {
-    let name = step.replace(REGEX_CONDITIONS, '').split('@')[0].replace(DESCENDANTS_SELECTOR, '').replace(/#\d*/g, '');
-    // eslint-disable-next-line no-useless-escape
+    let name = step.replace(REGEX_STEP_NOT_NAME, '');
     let conditions = step.match(REGEX_CONDITIONS);
     conditions = Array.isArray(conditions) ? conditions : [];
     const cleanConditions = [];
@@ -108,13 +117,13 @@ const isMatchingConditions = (conditions = [], jmlFragment, activeAttributes, de
     let isMatching = true;
     for (let i = 0; i < conditions.length; i++) {
         const condition = conditions[i];
-        const operator = condition.match(/(=|!=|<|<=|>|>=)/g)[0];
+        const operator = condition.match(REGEX_CONDITION_OPERATOR)[0];
         const operands = condition.split(operator);
         const evaluatedOperands = [];
         for (let j = 0; j < 2; j++) {
-            const value = /(\.\/|@|text\(\))/.test(operands[j])
+            const value = REGEX_IS_CONDITION_PATH_PART.test(operands[j])
                 ? evaluate(getPathSteps(operands[j]), [jmlFragment], activeAttributes, declaredNamespaces)[0]
-                : operands[j].replace(/["']/g, '');
+                : operands[j].replace(REGEX_QUOTES, '');
             addToArray(evaluatedOperands, hasContent(value) ? value : '');
         }
         let comparisonResult;
@@ -145,7 +154,7 @@ const isMatchingConditions = (conditions = [], jmlFragment, activeAttributes, de
 
 // test whether or not a fragment matches a qualified name
 const isMatchingName = (name, jmlFragment, activeAttributes, declaredNamespaces) => {
-    if (!hasContent(name) || /(^(text\(\)|\*)$)/.test(name)) return true;
+    if (!hasContent(name) || REGEX_IS_TEXT_OR_WILDCARD.test(name)) return true;
     const activeNamespaces = extractNamespaces(activeAttributes);
     const fragmentDefaultUri = findDefaultNamespaceUri(activeNamespaces);
     const {prefix: fragmentPrefix, name: fragmentName} = splitNamespaceName(jmlFragment.name);
@@ -164,8 +173,8 @@ const isMatchingName = (name, jmlFragment, activeAttributes, declaredNamespaces)
 };
 
 const simplifyPath = (path = '') => {
-    let simplePath = path.replace(/\/\//g, `/${DESCENDANTS_SELECTOR}`).replace(/\/@/g, '@').replace(/\.\//g, '/');
-    const positionSelectors = simplePath.match(/\[\d*\]/g);
+    let simplePath = path.replace(REGEX_DOUBLE_SLASH, `/${DESCENDANTS_SELECTOR}`).replace(REGEX_SLASH_AT, '@').replace(REGEX_DOT_SLASH, '/');
+    const positionSelectors = simplePath.match(REGEX_POSITION_SELECTOR);
     if (hasContent(positionSelectors)) {
         for (let i = 0; i < positionSelectors.length; i++) {
             const selector = positionSelectors[i];
