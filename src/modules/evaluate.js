@@ -22,42 +22,11 @@ const REGEX_IS_TEXT_OR_WILDCARD = /(^(text\(\)|\*)$)/;
 const REGEX_POSITION_SELECTOR = /\[\d*\]/g;
 const REGEX_QUOTES = /["']/g;
 const REGEX_SLASH_AT = /\/@/g;
+const REGEX_SLASH_OUTSIDE_CONDITIONS = /\/+(?![^[]*?\])/g;
 // eslint-disable-next-line no-useless-escape
 const REGEX_SQUARE_BRACKETS = /[\[\]]/g;
 // eslint-disable-next-line no-useless-escape
 const REGEX_STEP_NOT_NAME = new RegExp(`(${DESCENDANTS_SELECTOR}|[@\[${POSITION_SELECTOR}}].*)`, 'g');
-
-const separateNameAndConditions = (step = '') => {
-    let name = step.replace(REGEX_STEP_NOT_NAME, '');
-    let conditions = step.match(REGEX_CONDITIONS);
-    conditions = Array.isArray(conditions) ? conditions : [];
-    const cleanConditions = [];
-    for (let i = 0; i < conditions.length; i++) {
-        addToArray(cleanConditions, conditions[i].replace(REGEX_SQUARE_BRACKETS, ''));
-    }
-    return {
-        name: name,
-        conditions: cleanConditions,
-    };
-};
-
-const getPathSteps = simplePath => {
-    let conditions = simplePath.match(REGEX_CONDITIONS);
-    conditions = conditions === null ? [] : conditions;
-    for (let i = 0; i < conditions.length; i++) {
-        simplePath = simplePath.replace(conditions[i], `§${i}`);
-    }
-    const rawSteps = simplePath.split('/');
-    const steps = [];
-    for (let i = 0; i < rawSteps.length; i++) {
-        let step = rawSteps[i];
-        for (let j = 0; j < conditions.length; j++) {
-            step = step.replace(`§${j}`, conditions[j]);
-        }
-        if (step !== '') addToArray(steps, step);
-    }
-    return steps;
-};
 
 const evaluate = (steps, jmlFragments = [], parentAttributes = {}, declaredNamespaces = []) => {
     const currentStep = steps[0];
@@ -105,6 +74,8 @@ const evaluate = (steps, jmlFragments = [], parentAttributes = {}, declaredNames
         : successfulEvaluations);
     return results;
 };
+
+const getPathSteps = simplePath => simplePath.split(REGEX_SLASH_OUTSIDE_CONDITIONS);
 
 // tests whether or not a JML fragment matches a step including namespace and conditions
 const isMatching = (completeStep, jmlFragment, activeAttributes = {}, declaredNamespaces = []) => {
@@ -172,6 +143,20 @@ const isMatchingName = (name, jmlFragment, activeAttributes, declaredNamespaces)
     }
 };
 
+const separateNameAndConditions = (step = '') => {
+    let name = step.replace(REGEX_STEP_NOT_NAME, '');
+    let conditions = step.match(REGEX_CONDITIONS);
+    conditions = Array.isArray(conditions) ? conditions : [];
+    const cleanConditions = [];
+    for (let i = 0; i < conditions.length; i++) {
+        addToArray(cleanConditions, conditions[i].replace(REGEX_SQUARE_BRACKETS, ''));
+    }
+    return {
+        name: name,
+        conditions: cleanConditions,
+    };
+};
+
 const simplifyPath = (path = '') => {
     let simplePath = path.replace(REGEX_DOUBLE_SLASH, `/${DESCENDANTS_SELECTOR}`).replace(REGEX_SLASH_AT, '@').replace(REGEX_DOT_SLASH, '/');
     const positionSelectors = simplePath.match(REGEX_POSITION_SELECTOR);
@@ -182,7 +167,7 @@ const simplifyPath = (path = '') => {
             simplePath = simplePath.replace(selector, `${POSITION_SELECTOR}${number}`);
         }
     }
-    return simplePath;
+    return simplePath.substring(1);
 };
 
 const updateNamespacesFromAttributes = (jmlFragment, attributes) => {
@@ -232,6 +217,7 @@ const wrapResults = (results = []) => {
 export default (path, jml, options = {}) => {
     if (!isString(path) || path === '/' || (path !== '' && !path.startsWith('/'))) throw new Error(`${JSON.stringify(path)} is not a valid path`);
     if (!hasContent(jml) || !Array.isArray(jml.elements)) return [];
+    if (path === '') return [jml];
     const steps = getPathSteps(simplifyPath(path));
     const rootJmlFragment = jml.elements[0];
     const results = hasContent(steps)
