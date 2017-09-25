@@ -144,7 +144,7 @@ An optional object that describes the options for the evaluation:
 
 | Property | Description    | Examples           |
 |----------|----------------|-------------------|
-| namespaces | An _object array_ describing the namespaces used in the path with their namespace URI prefix, both as _string_ values. __Namespaces that appear as default values in the target JML object still need to be declared with a prefix in the options object.__ | `[{prefix: 'ns1', uri: 'http://example.com/ns1'}, {prefix: 'ns2', uri: 'http://example.com/ns2'}]` |
+| namespaces | An _object array_ describing the namespaces used in the path with their namespace URI and prefix, both as _string_ values. __Namespaces that appear as default values in the target JML object still need to be declared with a prefix in the options object.__ | `[{prefix: 'ns1', uri: 'http://example.com/ns1'}, {prefix: 'ns2', uri: 'http://example.com/ns2'}]` |
 
 #### Usage example
 
