@@ -116,19 +116,21 @@ const isMatchingName = (name, jmlFragment, activeAttributes, declaredNamespaces)
 // recursively evaluate an array of steps on an array of JML fragments and return matching content
 const recursiveEvaluate = (steps, jmlFragments = [], parentAttributes = {}, declaredNamespaces = []) => {
     const currentStep = steps[0];
+    const hasDescendantsSelector = currentStep.startsWith(DESCENDANTS_SELECTOR);
+    const isLastStep = steps.length === 1;
     const remainingSteps = steps.slice(1);
     const results = [];
     for (let i = 0; i < jmlFragments.length; i++) {
         const currentJmlFragment = jmlFragments[i];
         const mergedAttributes = mergeObjects(parentAttributes, currentJmlFragment.attributes);
         if (isMatching(currentStep, currentJmlFragment, mergedAttributes, declaredNamespaces)) {
-            if (steps.length === 1) {
+            if (isLastStep) {
                 addToArray(results, extractContent(currentStep, currentJmlFragment, mergedAttributes));
             } else {
                 addToArray(results, recursiveEvaluate(remainingSteps, currentJmlFragment.elements, mergedAttributes, declaredNamespaces));
             }
         }
-        if (currentStep.startsWith(DESCENDANTS_SELECTOR)) {
+        if (hasDescendantsSelector) {
             addToArray(results, recursiveEvaluate(steps, currentJmlFragment.elements, mergedAttributes, declaredNamespaces));
         }
     }
@@ -169,10 +171,10 @@ const simplifyPath = (path = '') => {
 // updates an JML fragments namespace attributes from a provided attributes object
 const updateNamespacesFromAttributes = (jmlFragment, attributes) => {
     const names = Object.keys(attributes);
+    if (!hasContent(jmlFragment.attributes)) jmlFragment.attributes = {};
     for (let i = 0; i < names.length; i++) {
         const name = names[i];
         if (name.startsWith('xmlns')) {
-            if (!hasContent(jmlFragment.attributes)) jmlFragment.attributes = {};
             jmlFragment.attributes[name] = attributes[name];
         }
     }
