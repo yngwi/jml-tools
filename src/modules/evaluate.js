@@ -12,43 +12,22 @@ import splitNamespaceName from '../utils/splitNamespaceName';
 
 const DESCENDANTS_SELECTOR = '%';
 const POSITION_SELECTOR = '#';
-const REGEX_CONDITION_OPERATOR = /(=|!=|<|<=|>|>=)/g;
+const REGEX_CONDITION_OPERATOR = /(=|!=|<|<=|>|>=)/;
 // eslint-disable-next-line no-useless-escape
-const REGEX_CONDITIONS = /\[[^\[]*\]/g;
-const REGEX_DOT_SLASH = /\.\//g;
+const REGEX_CONDITIONS = /\[[^\[]*\]/;
+const REGEX_DOT_SLASH = /\.\//;
 const REGEX_DOUBLE_SLASH = /\/\//g;
 const REGEX_IS_CONDITION_PATH_PART = /(\.\/|@|text\(\))/;
 const REGEX_IS_TEXT_OR_WILDCARD = /(^(text\(\)|\*)$)/;
-const REGEX_POSITION_SELECTOR = /\[\d*\]/g;
+const REGEX_NUMERIC_POSITION_SELECTOR = /.*#/;
+const REGEX_POSITION_SELECTOR = /\[\d*\]/;
 const REGEX_QUOTES = /["']/g;
-const REGEX_SLASH_AT = /\/@/g;
-const REGEX_SLASH_OUTSIDE_CONDITIONS = /\/+(?![^[]*?\])/g;
+const REGEX_SLASH_AT = /\/@/;
+const REGEX_SLASH_OUTSIDE_CONDITIONS = /\/+(?![^[]*?\])/;
 // eslint-disable-next-line no-useless-escape
 const REGEX_SQUARE_BRACKETS = /[\[\]]/g;
 // eslint-disable-next-line no-useless-escape
 const REGEX_STEP_NOT_NAME = new RegExp(`(${DESCENDANTS_SELECTOR}|[@\[${POSITION_SELECTOR}}].*)`, 'g');
-
-// evaluate the first in an array of steps on an array of JML fragments and return matching content
-const evaluate = (steps, jmlFragments = [], parentAttributes = {}, declaredNamespaces = []) => {
-    const currentStep = steps[0];
-    const remainingSteps = steps.slice(1);
-    const results = [];
-    for (let i = 0; i < jmlFragments.length; i++) {
-        const currentJmlFragment = jmlFragments[i];
-        const mergedAttributes = mergeObjects(parentAttributes, currentJmlFragment.attributes);
-        if (isMatching(currentStep, currentJmlFragment, mergedAttributes, declaredNamespaces)) {
-            if (steps.length === 1) {
-                addToArray(results, extractContent(currentStep, currentJmlFragment, mergedAttributes));
-            } else {
-                addToArray(results, evaluate(remainingSteps, currentJmlFragment.elements, mergedAttributes, declaredNamespaces));
-            }
-        }
-        if (currentStep.startsWith(DESCENDANTS_SELECTOR)) {
-            addToArray(results, evaluate(steps, currentJmlFragment.elements, mergedAttributes, declaredNamespaces));
-        }
-    }
-    return currentStep.includes(POSITION_SELECTOR) ? results[currentStep.replace(/.*#/g, '') - 1] : results;
-};
 
 // extract the contents according to a step
 const extractContent = (step, jmlFragment, attributes) => {
@@ -84,7 +63,7 @@ const isMatchingConditions = (conditions = [], jmlFragment, activeAttributes, de
         const evaluatedOperands = [];
         for (let j = 0; j < 2; j++) {
             const value = REGEX_IS_CONDITION_PATH_PART.test(operands[j])
-                ? evaluate(getPathSteps(operands[j]), [jmlFragment], activeAttributes, declaredNamespaces)[0]
+                ? recursiveEvaluate(getPathSteps(operands[j]), [jmlFragment], activeAttributes, declaredNamespaces)[0]
                 : operands[j].replace(REGEX_QUOTES, '');
             addToArray(evaluatedOperands, hasContent(value) ? value : '');
         }
@@ -132,6 +111,30 @@ const isMatchingName = (name, jmlFragment, activeAttributes, declaredNamespaces)
         if (hasContent(declaredNamespace) && isNil(declaredPrefix)) throw new Error(`No prefix declared for URI '${fragmentUri}'`);
         return `${declaredPrefix}:${fragmentName}` === name;
     }
+};
+
+// recursively evaluate an array of steps on an array of JML fragments and return matching content
+const recursiveEvaluate = (steps, jmlFragments = [], parentAttributes = {}, declaredNamespaces = []) => {
+    const currentStep = steps[0];
+    const remainingSteps = steps.slice(1);
+    const results = [];
+    for (let i = 0; i < jmlFragments.length; i++) {
+        const currentJmlFragment = jmlFragments[i];
+        const mergedAttributes = mergeObjects(parentAttributes, currentJmlFragment.attributes);
+        if (isMatching(currentStep, currentJmlFragment, mergedAttributes, declaredNamespaces)) {
+            if (steps.length === 1) {
+                addToArray(results, extractContent(currentStep, currentJmlFragment, mergedAttributes));
+            } else {
+                addToArray(results, recursiveEvaluate(remainingSteps, currentJmlFragment.elements, mergedAttributes, declaredNamespaces));
+            }
+        }
+        if (currentStep.startsWith(DESCENDANTS_SELECTOR)) {
+            addToArray(results, recursiveEvaluate(steps, currentJmlFragment.elements, mergedAttributes, declaredNamespaces));
+        }
+    }
+    return currentStep.includes(POSITION_SELECTOR)
+        ? results[currentStep.replace(REGEX_NUMERIC_POSITION_SELECTOR, '') - 1]
+        : results;
 };
 
 // split a step into its name and conditions parts and return them in an object
@@ -215,8 +218,6 @@ export default (path, jml, options = {}) => {
     if (path === '') return [jml];
     const steps = getPathSteps(simplifyPath(path));
     const rootJmlFragment = jml.elements[0];
-    const results = hasContent(steps)
-        ? evaluate(steps, rootJmlFragment.elements, rootJmlFragment.attributes, options.namespaces)
-        : [rootJmlFragment];
+    const results = recursiveEvaluate(steps, rootJmlFragment.elements, rootJmlFragment.attributes, options.namespaces);
     return wrapResults(results);
 };
