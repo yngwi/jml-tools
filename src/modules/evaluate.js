@@ -202,10 +202,19 @@ const wrapResults = (results = []) => {
 };
 
 /**
- * Evaluates a path expression similar to XPath on a JML object.
+ * Evaluates a path expression similar to XPath on a JML object starting with the content of the root object.
+ * Supported functionalities:
+ *  - <i>/first/second</i> => all 'second' objects that are direct children of a 'first' object
+ *  - <i>//second/text()</i> => the direct text content of all 'second' objects
+ *  - <i>//second//text()</i> => the text content of all 'second' objects and their descendants
+ *  - <i>/first/@value</i> => the text content of the 'value' attribute of all 'first' objects
+ *  - <i>/first[@value="1"]</i> => all 'first' objects that have a 'value' attribute with the value '1'. The value can be a string or a number
+ *  - <i>/first[.//third/text()="text"]</i> => all 'first' objects that have 'third' descendants that have 'text' as direct text content. The path that specifies the condition value starts with descendants of the current (e.g. 'first') object and is governed by the same rules than the 'outer' path
+ *  - <i>/first[2]</i> => the second 'first' object (see below for differences to XPath)
+ *  - <i>/ns:first</i> => all 'first' objects that are in the 'ns' namespace. The 'ns' namespace needs to be declared in the methods' options object
  * Differences to XPath:
- * * The value of an attribute can be accessed directly by /something/@attribute instead of data(/something/@attribute) or /something/@attribute/string()
- * * Considering the following xml <persons><person><name><given>Freddy</given></name></person><person><name><given>Brian</given></name></person></persons> '//given[1]' returns the first of all 'given' elements, wherever they appear, instead of the first 'given' element in each individual context like in XPath. This can be achieved by '//name/given[1]'
+ * * The value of an attribute can be accessed directly by <i>/something/@attribute</i> instead of <i>data(/something/@attribute)</i> or <i>/something/@attribute/string()</i>
+ * * Considering the following xml <i><persons><person><name><given>Freddy</given></name></person><person><name><given>Brian</given></name></person></persons></i> '//given[1]' returns the first of all 'given' objects, wherever they appear, instead of the first 'given' object in each individual context like in XPath. This can be achieved by <i>//name/given[1]</i>
  * @param {string} path The path to evaluate
  * @param {Object} jml The JML object to evaluate the path on
  * @param {Object} [options] The evaluation options
