@@ -54,7 +54,7 @@ const mapContent = (jmlFragment, activeNamespaces, content, mappings, options) =
 };
 
 // Recursive walk through a whole JML tree, extract content and apply mappings
-const transform = (jmlFragment, parentAttributes, mappings, options) => {
+const recursiveSerialize = (jmlFragment, parentAttributes, mappings, options) => {
     const mergedAttributes = Object.assign({...parentAttributes}, propOr({}, 'attributes', jmlFragment));
     let childContent = '';
     const childFragments = propOr([], 'elements', jmlFragment);
@@ -63,7 +63,7 @@ const transform = (jmlFragment, parentAttributes, mappings, options) => {
         if (childFragment.type === types.TEXT && /\S*/.test(childFragment.text)) {
             childContent += childFragment.text;
         } else {
-            const childTexts = transform(childFragment, mergedAttributes, mappings, options);
+            const childTexts = recursiveSerialize(childFragment, mergedAttributes, mappings, options);
             if (!isNil(childTexts)) {
                 childContent += childTexts;
             }
@@ -106,5 +106,5 @@ const validateOptions = (mappings = {}, options = {}) => {
 export default (jmlObject, mappings, options = {}) => {
     validateOptions(mappings, options);
     if (!hasContent(jmlObject) || !hasContent(mappings)) return '';
-    return transform(jmlObject.elements[0], {}, mappings, options);
+    return recursiveSerialize(jmlObject.elements[0], {}, mappings, options);
 };
