@@ -100,6 +100,83 @@ console.log(jmlObject);
 // }
 ```
 
+### evaluate
+
+Evaluates a path expression similar to XPath on a JML object starting with the content of the root object. It doesn't support all the functionalities of XPath, most importantly while the _descendant axis_ is available in the form of the double forward slash `//`, the other axes are not.
+
+#### Syntax
+
+```
+evaluate(path, jmlObject[, options])
+```
+
+#### Parameters
+
+##### path
+
+A _string_ that describes the individual steps that form the path to evaluate on a JML object. The steps are made up of (optionally qualified) object names, `text()` to select text content or `@name` to select an object attribute. Each step can have zero or more conditions that describe which specific objects a step will match.
+
+###### Examples
+
+| Path | Result |
+|------|-------------|
+| `/first/second` | All 'second' objects that are direct children of a 'first' object |
+| `//second/text()` | The direct text content of all 'second' objects |
+| `//second//text()` | The text content of all 'second' objects and their descendants |
+| `/first/@value` | The text content of the 'value' attribute of all 'first' objects |
+| `/first[@value="1"]` | All 'first' objects that have a 'value' attribute with the value '1'. The value can be a string or a number |
+| `/first[.//third/text()="text"]` | All 'first' objects that have 'third' descendants that have 'text' as direct text content. The path that specifies the condition value starts with descendants of the current (e.g. 'first') object and is governed by the same rules than the 'outer' path |
+| `/first[2]/second` | All 'second' objects that are a child of the second 'first' object |
+| `/ns:first` | All 'first' objects that are in the 'ns' namespace. The 'ns' namespace needs to be declared in the methods' [options](#evaluate_options) object |
+
+###### Notable differences to XPath
+
+* The value of an attribute can be accessed directly by `/something/@attribute` instead of `data(/something/@attribute)` or `/something/@attribute/string()`
+* When evaluating on an object that is equivalent to `<persons><person><name><given>Freddy</given></name></person><person><name><given>Brian</given></name></person></persons>`, `//given[1]` returns the first of all _given_ objects, wherever they appear, instead of the first _given_ object in each individual context like in XPath. A functionality similar to the default in XPath can be achieved by `//name/given[1]`.
+
+##### jmlObject
+
+A valid JML _object_ as created by the [create](#create) method and [xml-js](https://github.com/nashwaan/xml-js). The path will be evaluated on its contents starting inside the root object.
+
+##### <a name="evaluate_options"></a>options
+
+| Property | Description    | Examples           |
+|----------|----------------|-------------------|
+| namespaces | An _object array_ describing the elements' namespaces with the namespace URI and a mandatory prefix both as _string_ values. __Namespaces that appear as default values in the target JML object still need to be declared with a prefix in the options object.__ | `[{prefix: 'ns1', uri: 'http://example.com/ns1'}, {prefix: 'ns2', uri: 'http://example.com/ns2'}]` |
+
+#### Usage example
+
+```js
+import {evaluate} from 'jml-tools';
+// original XML:
+// <paragraph xmlns="http://example.com/ns">JSON is just as <emphasized>fun</emphasized> as XML.</paragraph>
+const jmlObject = {
+    elements: [{
+        type: 'element',
+        name: 'paragraph',
+        attributes: {
+            xmlns: 'http://example.com/ns'
+        },
+        elements: [
+            {type: 'text', text: 'JSON is just as '},
+            {
+                type: 'element',
+                name: 'emphasized',
+                elements: [
+                    {type: 'text', text: 'fun'}
+                ]
+            },
+            {type: 'text', text: ' as XML.'}
+        ]
+    }]
+};
+const result = evaluate('/ns:emphasized/text()', jmlObject, {namespaces: [{prefix: 'ns', uri: 'http://example.com/ns'}]});
+console.log(result);
+
+// Output:
+// ['fun']
+```
+
 ### serialize
 
 Serializes a JML object to a string according to fully qualified mappings that target either the whole object or individual child objects. This can, for example, be used to transform arbitrary structures into HTML or a different JSON representation.

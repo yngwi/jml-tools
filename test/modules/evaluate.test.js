@@ -3,6 +3,14 @@ import evaluate from '../../src/modules/evaluate';
 
 describe('evaluate', function () {
 
+    // it('temp', function () {
+    //     console.time('test');
+    //     for(let i = 0; i < 2000; i++) {
+    //         evaluate('//ns1:person[@birth="1947-07-19"][.//ns1:first/text()="Brian"]//ns1:first/text()', jmlObject, options)
+    //     }
+    //     console.timeEnd('test');
+    // });
+
     // Throw errors
 
     it('should throw an error if called without arguments', function () {
