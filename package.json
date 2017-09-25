@@ -24,7 +24,7 @@
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.6.0",
     "chai": "^4.1.2",
-    "eslint": "^4.6.1",
+    "eslint": "^4.7.2",
     "mocha": "^3.5.3",
     "xml-js": "^1.4.2"
   }

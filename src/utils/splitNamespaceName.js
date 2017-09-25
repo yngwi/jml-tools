@@ -1,4 +1,3 @@
-import isString from './isString';
 import hasContent from './hasContent';
 
 /**
