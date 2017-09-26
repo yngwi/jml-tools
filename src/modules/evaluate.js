@@ -12,6 +12,8 @@ import splitNamespaceName from '../utils/splitNamespaceName';
 
 const DESCENDANTS_SELECTOR = '%';
 const POSITION_SELECTOR = '#';
+// eslint-disable-next-line no-useless-escape
+const REGEX_ATTRIBUTE_SELECTOR_TEST = /@(?!.*])/;
 const REGEX_CONDITION_OPERATOR = /(=|!=|<|<=|>|>=)/;
 // eslint-disable-next-line no-useless-escape
 const REGEX_CONDITIONS = /\[[^\[]*\]/;
@@ -33,7 +35,7 @@ const REGEX_STEP_NOT_NAME = new RegExp(`(${DESCENDANTS_SELECTOR}|[@\[${POSITION_
 const extractContent = (step, jmlFragment, attributes) => {
     if (step.endsWith('text()')) {
         return jmlFragment.text;
-    } else if (step.includes('@')) {
+    } else if (REGEX_ATTRIBUTE_SELECTOR_TEST.test(step)) {
         const attributeName = step.substring(step.lastIndexOf('@') + 1);
         return pathOr(undefined, ['attributes', attributeName], jmlFragment);
     } else {
