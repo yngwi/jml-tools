@@ -1,6 +1,6 @@
 {
   "name": "jml-tools",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A set of tools to simplify the usage of XML-based JSON markup (JML) in JavaScript",
   "main": "dist-modules/",
   "files": [
