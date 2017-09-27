@@ -21,6 +21,7 @@ const REGEX_DOT_SLASH = /\.\//;
 const REGEX_DOUBLE_SLASH = /\/\//g;
 const REGEX_IS_CONDITION_PATH_PART = /(\.\/|@|text\(\))/;
 const REGEX_IS_TEXT_OR_WILDCARD = /(^(text\(\)|\*)$)/;
+const REGEX_LEADING_SLASH = /^\//;
 const REGEX_NUMERIC_POSITION_SELECTOR = /.*#/;
 const REGEX_POSITION_SELECTOR = /\[\d*\]/;
 const REGEX_QUOTES = /["']/g;
@@ -37,7 +38,7 @@ const extractContent = (step, jmlFragment, attributes) => {
         return jmlFragment.text;
     } else if (REGEX_ATTRIBUTE_SELECTOR_TEST.test(step)) {
         const attributeName = step.substring(step.lastIndexOf('@') + 1);
-        return pathOr(undefined, ['attributes', attributeName], jmlFragment);
+        return pathOr(propOr(undefined, attributeName, attributes), ['attributes', attributeName], jmlFragment);
     } else {
         return hasContent(attributes)
             ? updateNamespacesFromAttributes(jmlFragment, attributes)
@@ -167,7 +168,7 @@ const simplifyPath = (path = '') => {
             simplePath = simplePath.replace(selector, `${POSITION_SELECTOR}${number}`);
         }
     }
-    return simplePath.substring(1); // omit the first '/'
+    return simplePath.replace(REGEX_LEADING_SLASH, ''); // omit the first '/'
 };
 
 // updates an JML fragments namespace attributes from a provided attributes object
@@ -231,6 +232,10 @@ export default (path, jml, options = {}) => {
     if (path === '') return [jml];
     const steps = getPathSteps(simplifyPath(path));
     const rootJmlFragment = jml.elements[0];
-    const results = recursiveEvaluate(steps, rootJmlFragment.elements, rootJmlFragment.attributes, options.namespaces);
+    const {elements, attributes} = rootJmlFragment;
+    const {namespaces} = options;
+    const results = isNil(elements)
+        ? extractContent(steps[0], {}, attributes)
+        : recursiveEvaluate(steps, elements, attributes, namespaces);
     return wrapResults(results);
 };

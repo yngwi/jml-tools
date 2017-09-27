@@ -38,7 +38,7 @@ describe('evaluate', function () {
     // empty result sets
 
     it('should return an empty array when called without an JML object', function () {
-        expect(evaluate('', undefined)).to.deep.equal([]);
+        expect(evaluate('/@name', undefined)).to.deep.equal([]);
     });
 
     it('should return an empty array when called with an invalid JML object', function () {
