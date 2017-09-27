@@ -234,8 +234,9 @@ export default (path, jml, options = {}) => {
     const rootJmlFragment = jml.elements[0];
     const {elements, attributes} = rootJmlFragment;
     const {namespaces} = options;
-    const results = isNil(elements)
-        ? extractContent(steps[0], {}, attributes)
+    const firstStep = steps[0];
+    const results = firstStep[0] === '@'
+        ? extractContent(firstStep, {}, attributes)
         : recursiveEvaluate(steps, elements, attributes, namespaces);
     return wrapResults(results);
 };

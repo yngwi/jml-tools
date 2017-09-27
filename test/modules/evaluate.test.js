@@ -75,6 +75,14 @@ describe('evaluate', function () {
         expect(evaluate('', jmlObject, options)).to.deep.equal([jmlObject]);
     });
 
+    it('should return the correct result for /@version', function () {
+        expect(evaluate('/@version', jmlObject, options)).to.deep.equal(['alpha']);
+    });
+
+    it('should return the correct result for /text()', function () {
+        expect(evaluate('/text()', jmlObject, options)).to.deep.equal(['inline text']);
+    });
+
     it('should return the correct result for /inner', function () {
         expect(evaluate('/inner', simple)).to.deep.equal([{
             'elements': [{
@@ -466,8 +474,8 @@ const simple = {
 
 /* <root
     xmlns:ns1="http://example.com/ns/1"
-    xmlns:ns2="http://example.com/ns/2">
-    <planets>
+    xmlns:ns2="http://example.com/ns/2"
+    version="alpha">inline text<planets>
         <inner>Earth</inner>
         <inner>Mars</inner>
     </planets>
@@ -516,8 +524,12 @@ const jmlObject = {
     'elements': [{
         'type': 'element',
         'name': 'root',
-        'attributes': {'xmlns:ns1': 'http://example.com/ns/1', 'xmlns:ns2': 'http://example.com/ns/2'},
-        'elements': [{
+        'attributes': {
+            'xmlns:ns1': 'http://example.com/ns/1',
+            'xmlns:ns2': 'http://example.com/ns/2',
+            'version': 'alpha',
+        },
+        'elements': [{'type': 'text', 'text': 'inline text'}, {
             'type': 'element',
             'name': 'planets',
             'elements': [{
